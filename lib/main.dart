@@ -25,7 +25,6 @@ void main() async {
 
   var bootstrap = MultiProvider(
     providers: [
-      // FutureProvider(create: (_) => octopusEnergy.getConsumtion())Go,
       ChangeNotifierProvider<SettingsManager>(create: (_) => settingsManager),
       ChangeNotifierProvider<OctopusManager>(create: (_) => octoManager),
     ],

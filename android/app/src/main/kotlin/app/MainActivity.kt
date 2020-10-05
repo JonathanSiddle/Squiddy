@@ -1,4 +1,4 @@
-package com.example.squiddy
+package capp.squiddy
 
 import androidx.annotation.NonNull;
 import io.flutter.embedding.android.FlutterActivity
