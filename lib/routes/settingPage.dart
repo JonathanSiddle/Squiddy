@@ -56,7 +56,7 @@ class _SettingsPageState extends State<SettingsPage> {
                               Text('Squiddy Project', style: TextStyle(color: Colors.blue)),
                             ],
                           ),
-                          onTap: () => launch('https://octopus.energy'))
+                          onTap: () => launch('https://github.com/JonathanSiddle/Squiddy'))
                     ]);
               })
         ],

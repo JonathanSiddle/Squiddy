@@ -101,7 +101,7 @@ class _BootStrapPageState extends State<BootStrap> {
                                           ],
                                         ),
                                         onTap: () =>
-                                            launch('https://octopus.energy')),
+                                            launch('https://github.com/JonathanSiddle/Squiddy/wiki/Logging-into-Squiddy')),
                                     TextFormField(
                                       key: Key('apiKey'),
                                       controller: apiKeyTEC,
