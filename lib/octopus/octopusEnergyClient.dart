@@ -363,8 +363,17 @@ class ElectricityAgreement {
 
   ElectricityAgreement.fromJson(Map<String, dynamic> json) {
     tarrifCode = json['tariff_code'];
-    validFrom = octopusDateformat.parse(json['valid_from']);
-    validTo = octopusDateformat.parse(json['valid_to']);
+    try {
+      validFrom = octopusDateformat.parse(json['valid_from']);
+    } catch (e) {
+      validFrom = null;
+    }
+
+    try { 
+      validTo = octopusDateformat.parse(json['valid_to']);
+    } catch (e) {
+      validTo = null;
+    }
   }
 }
 
