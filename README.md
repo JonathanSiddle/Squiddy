@@ -6,7 +6,7 @@ Squiddy is an Android/iOS client for Octopus Energy. It allows you to view energ
 
 <p float="left">
     <img src="readmeImages/mainLight.png" alt="MainLight" width="200">
-    <img src="readmeImages/MonthLight.png" alt="MainLight" width="200">
+    <img src="readmeImages/monthLight.png" alt="monthLight" width="200">
     <img src="readmeImages/mainDark.png" alt="MainDark" width="200">
     <img src="readmeImages/monthDark.png" alt="MainDark" width="200">
 </p>
