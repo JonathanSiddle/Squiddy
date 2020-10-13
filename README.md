@@ -1,11 +1,14 @@
 # Squiddy
 
+<img src="assets/SSquid3.png" alt="LoginPage" width="200">
+
 Squiddy is an Android/iOS client for Octopus Energy. It allows you to view energy usage by month and by day. The app will currently only get the last year of data on your account. You must also generate and use your Octopus Energy developer API key to access energy data associated with your account.
 
 <p float="left">
-    <img src="readmeImages/login.png" alt="LoginPage" width="200">
     <img src="readmeImages/mainLight.png" alt="MainLight" width="200">
+    <img src="readmeImages/MonthLight.png" alt="MainLight" width="200">
     <img src="readmeImages/mainDark.png" alt="MainDark" width="200">
+    <img src="readmeImages/monthDark.png" alt="MainDark" width="200">
 </p>
 
 ## Still to-do
