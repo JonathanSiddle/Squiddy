@@ -32,9 +32,7 @@ dependencies:
   stats: ^1.0.0
   font_awesome_flutter: ^8.8.1
   dynamic_theme: ^1.0.1
-  firebase_core: ^0.4.0+9
   # Add the dependency for the FlutterFire plugin for Google Analytics
-  firebase_analytics: ^5.0.2
   pull_to_refresh: ^1.6.2
   url_launcher: ^5.7.2
 
