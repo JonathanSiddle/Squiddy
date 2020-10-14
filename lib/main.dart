@@ -85,40 +85,40 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     var settingsManager = Provider.of<SettingsManager>(context);
 
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      statusBarColor: SquiddyTheme.squiddyPrimary,
-    ));
-
     return DynamicTheme(
         defaultBrightness: defaultBrightness ?? Brightness.dark,
         data: (brightness) =>
             SquiddyTheme.defaultSquiddyTheme(brightness: brightness),
         themedWidgetBuilder: (context, theme) {
-          return MaterialApp(
-            title: 'Squiddy',
-            theme: theme, // home: ConsumptionList('Squiddy'),
-            // need to return a widget that rebuilds
-            navigatorObservers: <NavigatorObserver>[],
-            home: (settingsManager.accountDetailsSet &&
-                    settingsManager.validated)
-                ? Consumer<OctopusManager>(
-                    builder: (_, om, child) {
-                      return Scaffold(
-                        appBar: null,
-                        body: om.initialised && !om.errorGettingData
-                            ? ProxyProvider<OctopusManager, List<EnergyMonth>>(
-                                update: (_, om, __) => om.monthConsumption,
-                                child: MonthsOverview(),
-                              )
-                            : om.errorGettingData
-                                ? errorView(settingsManager)
-                                : Center(child: CircularProgressIndicator()),
-                      );
-                    },
-                  )
-                : Scaffold(
-                    body: BootStrap(),
-                  ),
+          return AnnotatedRegion(
+                  value: defaultBrightness == Brightness.light ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+                      child: MaterialApp(
+              title: 'Squiddy',
+              theme: theme, // home: ConsumptionList('Squiddy'),
+              // need to return a widget that rebuilds
+              navigatorObservers: <NavigatorObserver>[],
+              home: (settingsManager.accountDetailsSet &&
+                      settingsManager.validated)
+                  ? Consumer<OctopusManager>(
+                      builder: (_, om, child) {
+                        return Scaffold(
+                          appBar: null,
+                          body: om.initialised && !om.errorGettingData
+                              ? ProxyProvider<OctopusManager,
+                                  List<EnergyMonth>>(
+                                  update: (_, om, __) => om.monthConsumption,
+                                  child: MonthsOverview(),
+                                )
+                              : om.errorGettingData
+                                  ? errorView(settingsManager)
+                                  : Center(child: CircularProgressIndicator()),
+                        );
+                      },
+                    )
+                  : Scaffold(
+                      body: BootStrap(),
+                    ),
+            ),
           );
         });
   }
