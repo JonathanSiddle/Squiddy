@@ -119,7 +119,6 @@ class _MyAppState extends State<MyApp> {
                       },
                     )
                   : Scaffold(
-                      backgroundColor: SquiddyTheme.squiddyPrimary[100],
                       body: BootStrap(),
                     ),
             ),
