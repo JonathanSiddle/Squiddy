@@ -10,6 +10,7 @@ import 'package:squiddy/octopus/octopusEnergyClient.dart';
 import 'package:squiddy/octopus/settingsManager.dart';
 import 'package:squiddy/routes/bootstrap.dart';
 import 'package:squiddy/routes/monthsOverview.dart';
+import 'dart:io' show Platform;
 
 import 'octopus/octopusEnergyClient.dart';
 
@@ -91,8 +92,10 @@ class _MyAppState extends State<MyApp> {
             SquiddyTheme.defaultSquiddyTheme(brightness: brightness),
         themedWidgetBuilder: (context, theme) {
           return AnnotatedRegion(
-                  value: defaultBrightness == Brightness.light ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
-                      child: MaterialApp(
+            value: defaultBrightness == Brightness.light
+                ? SystemUiOverlayStyle.dark
+                : SystemUiOverlayStyle.light,
+            child: MaterialApp(
               title: 'Squiddy',
               theme: theme, // home: ConsumptionList('Squiddy'),
               // need to return a widget that rebuilds
@@ -116,6 +119,7 @@ class _MyAppState extends State<MyApp> {
                       },
                     )
                   : Scaffold(
+                      backgroundColor: SquiddyTheme.squiddyPrimary[100],
                       body: BootStrap(),
                     ),
             ),
