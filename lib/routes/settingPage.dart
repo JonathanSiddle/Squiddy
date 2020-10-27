@@ -35,8 +35,8 @@ class _SettingsPageState extends State<SettingsPage> {
               onPressed: () {
                 showAboutDialog(
                     context: context,
-                    applicationIcon: Image.asset('assets/Stephen.png',
-                        width: 30.0, height: 30.0),
+                    applicationIcon: Image.asset('assets/SSquid3.png',
+                        height: 50.0),
                     applicationName: 'Squiddy',
                     applicationVersion: AppConfig.appVersion,
                     children: <Widget>[

@@ -11,7 +11,7 @@ description: App for interacting with and viewing data from Octopus Energy accou
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.0.0+1
+version: 1.0.12+12
 
 environment:
   sdk: ">=2.6.0 <3.0.0"
@@ -25,16 +25,14 @@ dependencies:
   cupertino_icons: ^0.1.2
   http: ^0.12.0+4
   scoped_model: ^1.0.1
-  flutter_secure_storage: ^3.2.1+1
+  flutter_secure_storage: ^3.3.2
   intl: ^0.16.1 
   provider: ^4.0.4
   fl_chart: ^0.8.6
   stats: ^1.0.0
   font_awesome_flutter: ^8.8.1
   dynamic_theme: ^1.0.1
-  firebase_core: ^0.4.0+9
   # Add the dependency for the FlutterFire plugin for Google Analytics
-  firebase_analytics: ^5.0.2
   pull_to_refresh: ^1.6.2
   url_launcher: ^5.7.2
 
@@ -60,9 +58,8 @@ flutter_icons:
 # The following section is specific to Flutter.
 flutter:
   assets: 
-   - assets/Stephen.png
+   - assets/SSquid3.png
    - assets/icon.png
-
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.

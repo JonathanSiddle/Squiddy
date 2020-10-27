@@ -51,7 +51,7 @@ class _BootStrapPageState extends State<BootStrap> {
         margin: EdgeInsets.all(50),
         child: Column(
           children: <Widget>[
-            Image.asset('assets/Stephen.png'),
+            Image.asset('assets/SSquid3.png', height: 200),
             Center(
                 child: SquiddyTheme.squiddytHeadingBig2('Squiddy',
                     color: SquiddyTheme.squiddyPrimary)),
