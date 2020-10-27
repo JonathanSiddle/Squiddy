@@ -2,6 +2,8 @@
 
 <img src="assets/SSquid3.png" alt="LoginPage" width="200">
 
+<a href='https://play.google.com/store/apps/details?id=app.squiddy&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'><img alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png' width="200"></a>
+
 Squiddy is an Android/iOS client for Octopus Energy. It allows you to view energy usage by month and by day. The app will currently only get the last year of data on your account. You must also generate and use your Octopus Energy developer API key to access energy data associated with your account.
 
 <p float="left">
@@ -38,8 +40,16 @@ The app is built and developed using [Google Flutter](https://flutter.dev/). The
 
 ### Run
 
+*Note: building and running on iOS requires a MacOS, see Flutter documentation [https://flutter.dev/docs/deployment/ios](https://flutter.dev/docs/deployment/ios)*
+
 `flutter run -d <DeviceName>`
 
 ### Build
 
+Build for Android using the following command: 
+
 `flutter build apk --release`
+
+The app can also be build for iOS using: 
+
+`flutter build ios --release`
