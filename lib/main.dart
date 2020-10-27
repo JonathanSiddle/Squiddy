@@ -1,7 +1,6 @@
 import 'package:dynamic_theme/dynamic_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'
-    show SystemChrome, SystemUiOverlayStyle, rootBundle;
+import 'package:flutter/services.dart' show SystemUiOverlayStyle, rootBundle;
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:squiddy/Theme/SquiddyTheme.dart';
@@ -10,7 +9,6 @@ import 'package:squiddy/octopus/octopusEnergyClient.dart';
 import 'package:squiddy/octopus/settingsManager.dart';
 import 'package:squiddy/routes/bootstrap.dart';
 import 'package:squiddy/routes/monthsOverview.dart';
-import 'dart:io' show Platform;
 
 import 'octopus/octopusEnergyClient.dart';
 
