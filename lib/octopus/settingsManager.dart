@@ -3,7 +3,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class SettingsManager extends ChangeNotifier {
-  final FlutterSecureStorage _localStore;
+  final dynamic _localStore;
   bool validated = false;
   String apiKey;
   String accountId;
@@ -12,7 +12,8 @@ class SettingsManager extends ChangeNotifier {
 
   ThemeBrightness _themeBrightness;
 
-  SettingsManager({localStore}) : _localStore = localStore ?? FlutterSecureStorage();
+  SettingsManager({localStore})
+      : _localStore = localStore ?? FlutterSecureStorage();
 
   set themeBrightness(ThemeBrightness brightness) {
     _themeBrightness = brightness;

@@ -7,15 +7,26 @@ import 'package:squiddy/Theme/SquiddyTheme.dart';
 import 'package:squiddy/octopus/OctopusManager.dart';
 import 'package:squiddy/octopus/octopusEnergyClient.dart';
 import 'package:squiddy/octopus/settingsManager.dart';
+import 'package:squiddy/octopus/LocalStore.dart';
 import 'package:squiddy/routes/bootstrap.dart';
 import 'package:squiddy/routes/monthsOverview.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'octopus/octopusEnergyClient.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  var settingsManager = SettingsManager();
-  var octoManager = OctopusManager();
+
+  SettingsManager settingsManager;
+  OctopusManager octoManager;
+
+  if (kIsWeb) {
+    settingsManager = SettingsManager(localStore: LocalStore());
+  } else {
+    settingsManager = SettingsManager();
+  }
+
+  octoManager = OctopusManager();
   await settingsManager.loadSettings();
   if (settingsManager.accountDetailsSet) {
     //if previously save details, assume they have been validated
