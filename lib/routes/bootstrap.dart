@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:squiddy/Theme/SquiddyTheme.dart';
 import 'package:squiddy/Util/DialogUtil.dart';
 import 'package:squiddy/octopus/OctopusManager.dart';
+import 'package:squiddy/octopus/octopusEnergyClient.dart';
 import 'package:squiddy/octopus/settingsManager.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -100,8 +101,8 @@ class _BootStrapPageState extends State<BootStrap> {
                                                     color: Colors.blue)),
                                           ],
                                         ),
-                                        onTap: () =>
-                                            launch('https://github.com/JonathanSiddle/Squiddy/wiki/Logging-into-Squiddy')),
+                                        onTap: () => launch(
+                                            'https://github.com/JonathanSiddle/Squiddy/wiki/Logging-into-Squiddy')),
                                     TextFormField(
                                       key: Key('apiKey'),
                                       controller: apiKeyTEC,
@@ -230,27 +231,34 @@ class _BootStrapPageState extends State<BootStrap> {
                               style: TextStyle(color: Colors.white),
                             ),
                             onPressed: () async {
-                              var recentReadings =
-                                  await octopusManager.getConsumptionLast30Days(
-                                      apiKeyTEC.text,
-                                      selectedMp,
-                                      selectedMeter);
-                              print('${recentReadings.length} recent readings');
-                              var proceed = await DialogUtil.showYesNoDialog(
-                                  context,
-                                  '${recentReadings.length} recent readings for $selectedMeter do you want to use this meter?');
+                              List<EnergyConsumption> recentReadings;
 
-                              if (proceed) {
-                                print('Tapped Yes');
-                                await settingsManager.saveSettings();
-                                //make sure octomanager re-inits data with new settings
-                                octopusManager.initData(
-                                    apiKey: settingsManager.apiKey,
-                                    accountId: settingsManager.apiKey,
-                                    meterPoint: settingsManager.meterPoint,
-                                    meter: settingsManager.meter);
-                              } else {
-                                print('Tapped No');
+                              try {
+                                recentReadings = await octopusManager
+                                    .getConsumptionLast30Days(apiKeyTEC.text,
+                                        selectedMp, selectedMeter);
+
+                                print(
+                                    '${recentReadings.length} recent readings');
+                                var proceed = await DialogUtil.showYesNoDialog(
+                                    context,
+                                    '${recentReadings.length} recent readings for $selectedMeter do you want to use this meter?');
+
+                                if (proceed) {
+                                  print('Tapped Yes');
+                                  await settingsManager.saveSettings();
+                                  //make sure octomanager re-inits data with new settings
+                                  octopusManager.initData(
+                                      apiKey: settingsManager.apiKey,
+                                      accountId: settingsManager.apiKey,
+                                      meterPoint: settingsManager.meterPoint,
+                                      meter: settingsManager.meter);
+                                } else {
+                                  print('Tapped No');
+                                }
+                              } catch (_) {
+                                await DialogUtil.messageDialog(context, 'Error',
+                                    'Uh oh, something went wrong, could not get readings');
                               }
                             },
                           )

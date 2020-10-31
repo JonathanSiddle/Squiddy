@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 import 'package:squiddy/octopus/octopusEnergyClient.dart';
 
 class OctopusManager extends ChangeNotifier {
+  var timeoutDuration = 15;
   var initialised = false;
   var errorGettingData = false;
+  var timeoutError = false;
   String apiKey;
   OctopusEneryClient octopusEnergyClient;
   List<EnergyMonth> monthConsumption = List();
@@ -21,7 +25,18 @@ class OctopusManager extends ChangeNotifier {
       @required String meter}) async {
     initialised = false;
     errorGettingData = false;
-    monthConsumption = await octopusEnergyClient.getConsumtion(apiKey, meterPoint, meter);
+    timeoutError = false;
+
+    try {
+      print('Initing data');
+      monthConsumption = await octopusEnergyClient
+          .getConsumtion(apiKey, meterPoint, meter)
+          .timeout(Duration(seconds: timeoutDuration));
+    } on TimeoutException catch (_) {
+      timeoutError = true;
+    } catch (_) {
+      print('Uh error getting data');
+    }
 
     if (monthConsumption == null) {
       errorGettingData = true;
@@ -36,12 +51,24 @@ class OctopusManager extends ChangeNotifier {
     // return 'Got data';
   }
 
-  Future<EnergyAccount> getAccountDetails(String accountId, String apiKey) async {
+  Future<EnergyAccount> getAccountDetails(
+      String accountId, String apiKey) async {
     return await octopusEnergyClient.getAccountDetails(accountId, apiKey);
   }
 
-  Future<List<EnergyConsumption>> getConsumptionLast30Days(String apiKey, String meterPoint, String meter) async {
-    return await octopusEnergyClient.getConsumptionLast30Days(apiKey, meterPoint, meter);
+  Future<List<EnergyConsumption>> getConsumptionLast30Days(
+      String apiKey, String meterPoint, String meter) async {
+    return await octopusEnergyClient
+        .getConsumptionLast30Days(apiKey, meterPoint, meter)
+        .timeout(Duration(seconds: timeoutDuration));
+  }
+
+  retryLogin() {
+    monthConsumption = null;
+    initialised = false;
+    errorGettingData = false;
+    timeoutError = false;
+    notifyListeners();
   }
 
   resetState() {

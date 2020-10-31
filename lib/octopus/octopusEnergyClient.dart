@@ -56,7 +56,7 @@ class OctopusEneryClient {
     var months = await getConsumtion(apiKey, meterPoint, meter,
         periodFrom: lastMonth, periodTo: now);
 
-    //potentially could be null, init to empty list if this is the case 
+    //potentially could be null, init to empty list if this is the case
     if (months == null) {
       months = List<EnergyMonth>();
     }
@@ -102,7 +102,6 @@ class OctopusEneryClient {
     if (consumptionJson == null || consumptionJson.length == 0) {
       return null;
     }
-
 
     var consumption =
         consumptionJson.map((c) => EnergyConsumption.fromJson(c)).toList();
@@ -369,7 +368,7 @@ class ElectricityAgreement {
       validFrom = null;
     }
 
-    try { 
+    try {
       validTo = octopusDateformat.parse(json['valid_to']);
     } catch (e) {
       validTo = null;
