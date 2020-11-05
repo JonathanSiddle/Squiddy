@@ -4,7 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:squiddy/octopus/octopusEnergyClient.dart';
 
 class OctopusManager extends ChangeNotifier {
-  var timeoutDuration = 15;
+  var timeoutDuration = 90;
   var initialised = false;
   var errorGettingData = false;
   var timeoutError = false;
@@ -12,9 +12,13 @@ class OctopusManager extends ChangeNotifier {
   OctopusEneryClient octopusEnergyClient;
   List<EnergyMonth> monthConsumption = List();
 
-  OctopusManager({this.octopusEnergyClient}) {
+  OctopusManager({this.octopusEnergyClient, this.timeoutDuration}) {
     if (octopusEnergyClient == null) {
       octopusEnergyClient = OctopusEneryClient();
+    }
+
+    if (timeoutDuration == null) {
+      timeoutDuration = 90;
     }
   }
 
