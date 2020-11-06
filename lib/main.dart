@@ -62,7 +62,9 @@ class _MyAppState extends State<MyApp> {
     settings = Provider.of<SettingsManager>(context, listen: true);
     octoManager = Provider.of<OctopusManager>(context);
     if (settings.accountDetailsSet && settings.validated) {
-      if (octoManager != null && !octoManager.initialised) {
+      if (octoManager != null &&
+          !octoManager.initialised &&
+          !octoManager.errorGettingData) {
         print('Initialising octoManager data');
         print('Using meterpoint: ${settings.meterPoint}');
         octoManager.initData(
@@ -110,9 +112,12 @@ class _MyAppState extends State<MyApp> {
                                   update: (_, om, __) => om.monthConsumption,
                                   child: MonthsOverview(),
                                 )
-                              : om.errorGettingData
-                                  ? errorView(settingsManager)
-                                  : Center(child: CircularProgressIndicator()),
+                              : om.timeoutError
+                                  ? timeoutErrorView()
+                                  : om.errorGettingData
+                                      ? errorView(settingsManager)
+                                      : Center(
+                                          child: CircularProgressIndicator()),
                         );
                       },
                     )
@@ -122,6 +127,60 @@ class _MyAppState extends State<MyApp> {
             ),
           );
         });
+  }
+
+  Widget timeoutErrorView() {
+    return SafeArea(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Icon(
+                  FontAwesomeIcons.sadTear,
+                  size: 55,
+                  color: SquiddyTheme.squiddyPrimary,
+                ),
+              ),
+              Center(
+                  child: Text(
+                      "uh oh, taking readings was taking an unexpectedly long time.")),
+              Text(
+                  'If the problem continues, try loging out and logging back in'),
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: RaisedButton(
+                    child: Text(
+                      'Retry',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    color: SquiddyTheme.squiddySecondary,
+                    onPressed: () async {
+                      setState(() {
+                        octoManager.retryLogin();
+                      });
+                    }),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: RaisedButton(
+                    child: Text(
+                      'Logout',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    color: Colors.red,
+                    onPressed: () async {
+                      await settings.cleanSettings();
+                    }),
+              )
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   Widget errorView(SettingsManager settingsManager) {
@@ -142,7 +201,10 @@ class _MyAppState extends State<MyApp> {
                 ),
               ),
               Text('Uh oh, there is no data here or something went wrong!'),
-              Text('If the problem continues, try logging in again'),
+              Text('If the problem continues try:'),
+              Text(''),
+              Text('- Checking connection'),
+              Text('- Logging in again'),
               Padding(
                 padding: const EdgeInsets.all(20.0),
                 child: RaisedButton(

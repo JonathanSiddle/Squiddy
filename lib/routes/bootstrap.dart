@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:squiddy/Theme/SquiddyTheme.dart';
 import 'package:squiddy/Util/DialogUtil.dart';
 import 'package:squiddy/octopus/OctopusManager.dart';
+import 'package:squiddy/octopus/octopusEnergyClient.dart';
 import 'package:squiddy/octopus/settingsManager.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -23,6 +24,7 @@ class _BootStrapPageState extends State<BootStrap> {
   var accountTEC = TextEditingController();
 
   var _checkingAccountDetails = false;
+  var _checkingMeterDetaiils = false;
   var _stepIndex = 0;
   bool loading = false;
   SettingsManager settingsManager;
@@ -100,8 +102,8 @@ class _BootStrapPageState extends State<BootStrap> {
                                                     color: Colors.blue)),
                                           ],
                                         ),
-                                        onTap: () =>
-                                            launch('https://github.com/JonathanSiddle/Squiddy/wiki/Logging-into-Squiddy')),
+                                        onTap: () => launch(
+                                            'https://github.com/JonathanSiddle/Squiddy/wiki/Logging-into-Squiddy')),
                                     TextFormField(
                                       key: Key('apiKey'),
                                       controller: apiKeyTEC,
@@ -186,36 +188,19 @@ class _BootStrapPageState extends State<BootStrap> {
                   Step(
                       isActive: _stepIndex == 1 ? true : false,
                       title: Text('Meter'),
-                      content: Column(
-                        children: <Widget>[
-                          Text('Select a meter point'),
-                          DropdownButton<String>(
-                            value: selectedMp,
-                            onChanged: (v) {
-                              setState(() {
-                                selectedMp = v;
-                                settingsManager.meterPoint = v;
-                              });
-                            },
-                            items: meterPoints?.keys
-                                ?.map<DropdownMenuItem<String>>(
-                                    (e) => DropdownMenuItem<String>(
-                                          value: e,
-                                          child: Text(e),
-                                        ))
-                                ?.toList(),
-                          ),
-                          selectedMp == null
-                              ? Container()
-                              : DropdownButton<String>(
-                                  value: selectedMeter,
+                      content: !_checkingMeterDetaiils
+                          ? Column(
+                              children: <Widget>[
+                                Text('Select a meter point'),
+                                DropdownButton<String>(
+                                  value: selectedMp,
                                   onChanged: (v) {
                                     setState(() {
-                                      selectedMeter = v;
-                                      settingsManager.meter = v;
+                                      selectedMp = v;
+                                      settingsManager.meterPoint = v;
                                     });
                                   },
-                                  items: meterPoints[selectedMp]
+                                  items: meterPoints?.keys
                                       ?.map<DropdownMenuItem<String>>(
                                           (e) => DropdownMenuItem<String>(
                                                 value: e,
@@ -223,39 +208,77 @@ class _BootStrapPageState extends State<BootStrap> {
                                               ))
                                       ?.toList(),
                                 ),
-                          RaisedButton(
-                            color: SquiddyTheme.squiddyPrimary,
-                            child: Text(
-                              'Test',
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            onPressed: () async {
-                              var recentReadings =
-                                  await octopusManager.getConsumptionLast30Days(
-                                      apiKeyTEC.text,
-                                      selectedMp,
-                                      selectedMeter);
-                              print('${recentReadings.length} recent readings');
-                              var proceed = await DialogUtil.showYesNoDialog(
-                                  context,
-                                  '${recentReadings.length} recent readings for $selectedMeter do you want to use this meter?');
+                                selectedMp == null
+                                    ? Container()
+                                    : DropdownButton<String>(
+                                        value: selectedMeter,
+                                        onChanged: (v) {
+                                          setState(() {
+                                            selectedMeter = v;
+                                            settingsManager.meter = v;
+                                          });
+                                        },
+                                        items: meterPoints[selectedMp]
+                                            ?.map<DropdownMenuItem<String>>(
+                                                (e) => DropdownMenuItem<String>(
+                                                      value: e,
+                                                      child: Text(e),
+                                                    ))
+                                            ?.toList(),
+                                      ),
+                                RaisedButton(
+                                  color: SquiddyTheme.squiddyPrimary,
+                                  child: Text(
+                                    'Test',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                  onPressed: () async {
+                                    setState(() {
+                                      _checkingMeterDetaiils = true;
+                                    });
+                                    List<EnergyConsumption> recentReadings;
 
-                              if (proceed) {
-                                print('Tapped Yes');
-                                await settingsManager.saveSettings();
-                                //make sure octomanager re-inits data with new settings
-                                octopusManager.initData(
-                                    apiKey: settingsManager.apiKey,
-                                    accountId: settingsManager.apiKey,
-                                    meterPoint: settingsManager.meterPoint,
-                                    meter: settingsManager.meter);
-                              } else {
-                                print('Tapped No');
-                              }
-                            },
-                          )
-                        ],
-                      )),
+                                    try {
+                                      recentReadings = await octopusManager
+                                          .getConsumptionLast30Days(
+                                              apiKeyTEC.text,
+                                              selectedMp,
+                                              selectedMeter);
+
+                                      print(
+                                          '${recentReadings.length} recent readings');
+                                      var proceed =
+                                          await DialogUtil.showYesNoDialog(
+                                              context,
+                                              '${recentReadings.length} recent readings for $selectedMeter do you want to use this meter?');
+
+                                      if (proceed) {
+                                        print('Tapped Yes');
+                                        await settingsManager.saveSettings();
+                                        //make sure octomanager re-inits data with new settings
+                                        octopusManager.initData(
+                                            apiKey: settingsManager.apiKey,
+                                            accountId: settingsManager.apiKey,
+                                            meterPoint:
+                                                settingsManager.meterPoint,
+                                            meter: settingsManager.meter);
+                                      } else {
+                                        print('Tapped No');
+                                      }
+                                    } catch (_) {
+                                      await DialogUtil.messageDialog(
+                                          context,
+                                          'Error',
+                                          'Uh oh, something went wrong, could not get readings');
+                                    }
+                                    setState(() {
+                                      _checkingMeterDetaiils = false;
+                                    });
+                                  },
+                                )
+                              ],
+                            )
+                          : CircularProgressIndicator()),
                 ]),
           ],
         ),
