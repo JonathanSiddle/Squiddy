@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -27,7 +29,16 @@ class _MonthsOverviewState extends State<MonthsOverview> {
       RefreshController(initialRefresh: false);
   SettingsManager settings;
   OctopusManager octoManager;
+  List<Color> colors = [
+    Colors.orange.shade300,
+    Colors.orange.shade500,
+    Colors.green.shade300,
+    Colors.green.shade500,
+    Colors.red.shade300,
+    Colors.red.shade500
+  ];
   final urlDate = DateFormat('yyyy/MM');
+  final rnd = Random();
 
   @override
   void didChangeDependencies() {
@@ -151,6 +162,7 @@ class _MonthsOverviewState extends State<MonthsOverview> {
                       )
                     ],
                   )
+                //Main area section if all goes well...
                 : SafeArea(
                     child: SmartRefresher(
                       enablePullDown: true,
@@ -164,7 +176,8 @@ class _MonthsOverviewState extends State<MonthsOverview> {
                               Column(
                                 children: <Widget>[
                                   Padding(
-                                    padding: const EdgeInsets.all(8.0),
+                                    padding: const EdgeInsets.fromLTRB(
+                                        10, 10, 10, 5),
                                     child: Row(
                                       children: <Widget>[
                                         Text(
@@ -188,6 +201,71 @@ class _MonthsOverviewState extends State<MonthsOverview> {
                                     ),
                                   ),
                                   Padding(
+                                    padding: const EdgeInsets.fromLTRB(
+                                        10.0, 0, 10, 0),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          'Current Prices',
+                                          style: TextStyle(fontSize: 24),
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.fromLTRB(
+                                              10, 0, 0, 0),
+                                          child: Icon(
+                                              FontAwesomeIcons.questionCircle),
+                                        )
+                                      ],
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ]),
+                          ),
+                          //What will become the new agile price section
+                          SliverToBoxAdapter(
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(10, 5, 10, 10),
+                              child: Container(
+                                height: 100,
+                                child: ListView.builder(
+                                    scrollDirection: Axis.horizontal,
+                                    itemCount: 20,
+                                    itemBuilder: (context, index) {
+                                      return Container(
+                                        width: 100,
+                                        child: Card(
+                                            color: colors[rnd.nextInt(5)],
+                                            elevation: 0,
+                                            child: Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.spaceEvenly,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.center,
+                                              children: [
+                                                Text(
+                                                  '${rnd.nextInt(24)}:00',
+                                                  style: TextStyle(
+                                                      fontSize: 18,
+                                                      fontWeight:
+                                                          FontWeight.bold),
+                                                ),
+                                                Text(
+                                                    '${rnd.nextInt(34)}.${rnd.nextInt(100)}p'),
+                                              ],
+                                            )),
+                                      );
+                                    }),
+                              ),
+                            ),
+                          ),
+                          SliverList(
+                            delegate: SliverChildListDelegate([
+                              Column(
+                                children: <Widget>[
+                                  Padding(
                                     padding: const EdgeInsets.all(10.0),
                                     child: OverviewSummary(),
                                   ),
@@ -195,6 +273,10 @@ class _MonthsOverviewState extends State<MonthsOverview> {
                               ),
                             ]),
                           ),
+                          // SliverList(
+                          //     delegate: SliverChildBuilderDelegate(
+                          //         (context, index) {},
+                          //         childCount: 20)),
                           SliverList(
                             delegate:
                                 SliverChildBuilderDelegate((context, index) {

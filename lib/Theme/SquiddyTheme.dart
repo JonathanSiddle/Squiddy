@@ -103,6 +103,16 @@ class SquiddyTheme {
         ));
   }
 
+  static Widget squiddyHeading2(String text, {Color color}) {
+    return Text(
+      text,
+      style: TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          color: color ?? HSLColor.fromAHSL(1.0, 209.0, 0.34, 0.30).toColor()),
+    );
+  }
+
   static ThemeData defaultSquiddyTheme({Brightness brightness}) {
     return ThemeData(
         primaryColor: SquiddyTheme.squiddyPrimary,
