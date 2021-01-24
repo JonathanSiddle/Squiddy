@@ -1,11 +1,10 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:squiddy/Charts/overviewSummary.dart';
 import 'package:squiddy/Theme/SquiddyTheme.dart';
 import 'package:squiddy/Util/SlideRoute.dart';
@@ -14,6 +13,7 @@ import 'package:squiddy/octopus/octopusEnergyClient.dart';
 import 'package:squiddy/octopus/settingsManager.dart';
 import 'package:squiddy/routes/monthDaysPage.dart';
 import 'package:squiddy/routes/settingPage.dart';
+import 'package:squiddy/widgets/agilePriceCard.dart';
 
 import '../monthDisplayCard.dart';
 
@@ -29,16 +29,7 @@ class _MonthsOverviewState extends State<MonthsOverview> {
       RefreshController(initialRefresh: false);
   SettingsManager settings;
   OctopusManager octoManager;
-  List<Color> colors = [
-    Colors.orange.shade300,
-    Colors.orange.shade500,
-    Colors.green.shade300,
-    Colors.green.shade500,
-    Colors.red.shade300,
-    Colors.red.shade500
-  ];
   final urlDate = DateFormat('yyyy/MM');
-  final rnd = Random();
 
   @override
   void didChangeDependencies() {
@@ -162,7 +153,9 @@ class _MonthsOverviewState extends State<MonthsOverview> {
                       )
                     ],
                   )
-                //Main area section if all goes well...
+                /**********************
+                 *Main area section if all goes well...
+                ***********************/
                 : SafeArea(
                     child: SmartRefresher(
                       enablePullDown: true,
@@ -224,43 +217,71 @@ class _MonthsOverviewState extends State<MonthsOverview> {
                               ),
                             ]),
                           ),
+                          /********************
+                           * Agile price section
+                           *******************/
                           //What will become the new agile price section
-                          SliverToBoxAdapter(
-                            child: Padding(
-                              padding: const EdgeInsets.fromLTRB(10, 5, 10, 10),
-                              child: Container(
-                                height: 100,
-                                child: ListView.builder(
-                                    scrollDirection: Axis.horizontal,
-                                    itemCount: 20,
-                                    itemBuilder: (context, index) {
-                                      return Container(
-                                        width: 100,
-                                        child: Card(
-                                            color: colors[rnd.nextInt(5)],
-                                            elevation: 0,
-                                            child: Column(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.spaceEvenly,
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.center,
-                                              children: [
-                                                Text(
-                                                  '${rnd.nextInt(24)}:00',
-                                                  style: TextStyle(
-                                                      fontSize: 18,
-                                                      fontWeight:
-                                                          FontWeight.bold),
+                          settings.showAgilePrices
+                              ? SliverToBoxAdapter(
+                                  child: Padding(
+                                    padding: const EdgeInsets.fromLTRB(
+                                        10, 5, 10, 10),
+                                    child: FutureBuilder<List<AgilePrice>>(
+                                        future: octoManager.getAgilePrices(
+                                            accountId: settings.accountId,
+                                            apiKey: settings.apiKey),
+                                        builder: (context, snapshot) {
+                                          if (!snapshot.hasData) {
+                                            return Shimmer.fromColors(
+                                              baseColor: Colors.black12,
+                                              highlightColor: Colors.white,
+                                              child: Container(
+                                                height: 100,
+                                                child: Row(
+                                                  children: [
+                                                    AgilePriceCard(
+                                                        time: '...',
+                                                        price: '...'),
+                                                    AgilePriceCard(
+                                                        time: '...',
+                                                        price: '...'),
+                                                    AgilePriceCard(
+                                                        time: '...',
+                                                        price: '...'),
+                                                    AgilePriceCard(
+                                                        time: '...',
+                                                        price: '...'),
+                                                  ],
                                                 ),
-                                                Text(
-                                                    '${rnd.nextInt(34)}.${rnd.nextInt(100)}p'),
-                                              ],
-                                            )),
-                                      );
-                                    }),
-                              ),
-                            ),
-                          ),
+                                              ),
+                                            );
+                                          }
+
+                                          return Container(
+                                            height: 100,
+                                            child: ListView.builder(
+                                              scrollDirection: Axis.horizontal,
+                                              itemCount: snapshot.data.length,
+                                              itemBuilder: (context, index) {
+                                                var ap = snapshot.data[index];
+                                                return AgilePriceCard(
+                                                    time: ap.time,
+                                                    price: ap.price);
+                                              },
+                                            ),
+                                          );
+                                        }),
+
+                                    // Container(
+                                    //   height: 100,
+                                    //   child: ListView.builder(
+                                    //       scrollDirection: Axis.horizontal,
+                                    //       itemCount: 20,
+                                    //       itemBuilder: (context, index) {}),
+                                    // ),
+                                  ),
+                                )
+                              : Container(),
                           SliverList(
                             delegate: SliverChildListDelegate([
                               Column(

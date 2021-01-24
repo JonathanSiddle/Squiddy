@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
@@ -110,6 +111,9 @@ class OctopusEneryClient {
 
     return energyMonths;
   }
+
+  static Future<List<AgilePrice>> getCurrentAgilePrices(
+      {@required String tarrifCode}) async {}
 
   static List<EnergyMonth> getEnergyMonthsFromConsumption(
       List<EnergyConsumption> consumption) {
@@ -304,6 +308,16 @@ class EnergyAccount {
     electricityMeterPoints =
         meterPoints.map((p) => ElectricityMeterPoint.fromJson(p)).toList();
   }
+
+  bool hasActiveAgileAccount({DateTime currentDateTime}) {
+    var agreements = electricityMeterPoints
+        ?.map((e) => e.agreements)
+        ?.expand((el) => el)
+        ?.toList();
+
+    return agreements.any((a) =>
+        (a.validTo.isAfter(currentDateTime) && a.tarrifCode.contains('AGILE')));
+  }
 }
 
 class ElectricityMeterPoint {
@@ -389,4 +403,11 @@ class EnergyConsumption {
     intervalStart = octopusDateformat.parse(json['interval_start']);
     intervalEnd = octopusDateformat.parse(json['interval_end']);
   }
+}
+
+class AgilePrice {
+  String time;
+  String price;
+
+  AgilePrice({this.time, this.price});
 }
