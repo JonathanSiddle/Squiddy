@@ -30,6 +30,7 @@ class _MonthsOverviewState extends State<MonthsOverview> {
   SettingsManager settings;
   OctopusManager octoManager;
   final urlDate = DateFormat('yyyy/MM');
+  final timeFormat = DateFormat('HH:mm');
 
   @override
   void didChangeDependencies() {
@@ -229,7 +230,9 @@ class _MonthsOverviewState extends State<MonthsOverview> {
                                     child: FutureBuilder<List<AgilePrice>>(
                                         future: octoManager.getAgilePrices(
                                             accountId: settings.accountId,
-                                            apiKey: settings.apiKey),
+                                            apiKey: settings.apiKey,
+                                            dateTime: DateTime.now(),
+                                            onlyAfterDateTime: true),
                                         builder: (context, snapshot) {
                                           if (!snapshot.hasData) {
                                             return Shimmer.fromColors(
@@ -240,17 +243,13 @@ class _MonthsOverviewState extends State<MonthsOverview> {
                                                 child: Row(
                                                   children: [
                                                     AgilePriceCard(
-                                                        time: '...',
-                                                        price: '...'),
+                                                        time: '...', price: 0),
                                                     AgilePriceCard(
-                                                        time: '...',
-                                                        price: '...'),
+                                                        time: '...', price: 0),
                                                     AgilePriceCard(
-                                                        time: '...',
-                                                        price: '...'),
+                                                        time: '...', price: 0),
                                                     AgilePriceCard(
-                                                        time: '...',
-                                                        price: '...'),
+                                                        time: '...', price: 0),
                                                   ],
                                                 ),
                                               ),
@@ -265,20 +264,13 @@ class _MonthsOverviewState extends State<MonthsOverview> {
                                               itemBuilder: (context, index) {
                                                 var ap = snapshot.data[index];
                                                 return AgilePriceCard(
-                                                    time: ap.time,
-                                                    price: ap.price);
+                                                    time: timeFormat
+                                                        .format(ap.validFrom),
+                                                    price: ap.valueIncVat);
                                               },
                                             ),
                                           );
                                         }),
-
-                                    // Container(
-                                    //   height: 100,
-                                    //   child: ListView.builder(
-                                    //       scrollDirection: Axis.horizontal,
-                                    //       itemCount: 20,
-                                    //       itemBuilder: (context, index) {}),
-                                    // ),
                                   ),
                                 )
                               : Container(),

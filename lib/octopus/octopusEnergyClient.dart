@@ -1,4 +1,6 @@
 import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -112,8 +114,25 @@ class OctopusEneryClient {
     return energyMonths;
   }
 
-  static Future<List<AgilePrice>> getCurrentAgilePrices(
-      {@required String tarrifCode}) async {}
+  Future<List<AgilePrice>> getCurrentAgilePrices(
+      {@required String tarrifCode}) async {
+    var agilePrices = List<AgilePrice>();
+
+    http.Response response;
+    try {
+      response = await http.get(
+          'https://api.octopus.energy/v1/products/AGILE-18-02-21/electricity-tariffs/$tarrifCode/standard-unit-rates');
+    } catch (e) {
+      return null;
+    }
+
+    if (response != null && response.statusCode == 200) {
+      List<dynamic> json = jsonDecode(response.body)['results'];
+      agilePrices = json.map((ap) => AgilePrice.fromMap(ap)).toList();
+    }
+
+    return agilePrices;
+  }
 
   static List<EnergyMonth> getEnergyMonthsFromConsumption(
       List<EnergyConsumption> consumption) {
@@ -318,6 +337,21 @@ class EnergyAccount {
     return agreements.any((a) =>
         (a.validTo.isAfter(currentDateTime) && a.tarrifCode.contains('AGILE')));
   }
+
+  ///This method will return the first active AGLIE tarrif code, if available
+  String getAgileTarrifCode({DateTime currentDateTime}) {
+    var agreements = electricityMeterPoints
+        ?.map((e) => e.agreements)
+        ?.expand((el) => el)
+        ?.toList();
+
+    return agreements
+        .firstWhere(
+            (a) => (a.validTo.isAfter(currentDateTime) &&
+                a.tarrifCode.contains('AGILE')),
+            orElse: null)
+        ?.tarrifCode;
+  }
 }
 
 class ElectricityMeterPoint {
@@ -406,8 +440,78 @@ class EnergyConsumption {
 }
 
 class AgilePrice {
-  String time;
-  String price;
+  DateTime validFrom;
+  DateTime validTo;
+  double valueExcVat;
+  double valueIncVat;
 
-  AgilePrice({this.time, this.price});
+  AgilePrice({
+    this.validFrom,
+    this.validTo,
+    this.valueExcVat,
+    this.valueIncVat,
+  });
+
+  AgilePrice copyWith({
+    DateTime validFrom,
+    DateTime validTo,
+    double valueExcVat,
+    double valueIncVat,
+  }) {
+    return AgilePrice(
+      validFrom: validFrom ?? this.validFrom,
+      validTo: validTo ?? this.validTo,
+      valueExcVat: valueExcVat ?? this.valueExcVat,
+      valueIncVat: valueIncVat ?? this.valueIncVat,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'valid_from': validFrom?.millisecondsSinceEpoch,
+      'valid_to': validTo?.millisecondsSinceEpoch,
+      'value_exc_vat': valueExcVat,
+      'value_inc_vat': valueIncVat,
+    };
+  }
+
+  factory AgilePrice.fromMap(Map<String, dynamic> map) {
+    if (map == null) return null;
+
+    return AgilePrice(
+      validFrom: octopusDateformat.parse(map['valid_from']),
+      validTo: octopusDateformat.parse(map['valid_to']),
+      valueExcVat: map['value_exc_vat'],
+      valueIncVat: map['value_inc_vat'],
+    );
+  }
+
+  String toJson() => json.encode(toMap());
+
+  factory AgilePrice.fromJson(String source) =>
+      AgilePrice.fromMap(json.decode(source));
+
+  @override
+  String toString() {
+    return 'AgilePrice(validFrom: $validFrom, validTo: $validTo, valueExcVat: $valueExcVat, valueIncVat: $valueIncVat)';
+  }
+
+  @override
+  bool operator ==(Object o) {
+    if (identical(this, o)) return true;
+
+    return o is AgilePrice &&
+        o.validFrom == validFrom &&
+        o.validTo == validTo &&
+        o.valueExcVat == valueExcVat &&
+        o.valueIncVat == valueIncVat;
+  }
+
+  @override
+  int get hashCode {
+    return validFrom.hashCode ^
+        validTo.hashCode ^
+        valueExcVat.hashCode ^
+        valueIncVat.hashCode;
+  }
 }
