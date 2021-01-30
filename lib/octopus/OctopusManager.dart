@@ -8,17 +8,28 @@ class OctopusManager extends ChangeNotifier {
   var initialised = false;
   var errorGettingData = false;
   var timeoutError = false;
+  var showAgilePrices = false;
+  String agileTarrifCode;
+  DateTime Function() dateTimeFetcher = () => DateTime.now();
+
   String apiKey;
   OctopusEneryClient octopusEnergyClient;
   List<EnergyMonth> monthConsumption = List();
 
-  OctopusManager({this.octopusEnergyClient, this.timeoutDuration}) {
+  OctopusManager(
+      {this.octopusEnergyClient,
+      this.timeoutDuration,
+      DateTime Function() inDateTimeFetcher}) {
     if (octopusEnergyClient == null) {
       octopusEnergyClient = OctopusEneryClient();
     }
 
     if (timeoutDuration == null) {
       timeoutDuration = 90;
+    }
+
+    if (inDateTimeFetcher != null) {
+      this.dateTimeFetcher = inDateTimeFetcher;
     }
   }
 
@@ -83,42 +94,19 @@ class OctopusManager extends ChangeNotifier {
   }
 
   Future<List<AgilePrice>> getAgilePrices(
-      {@required String accountId,
-      @required String apiKey,
-      @required DateTime dateTime,
-      @required bool onlyAfterDateTime}) async {
+      {@required String tarrifCode, @required bool onlyAfterDateTime}) async {
     List<AgilePrice> prices;
-    var accountDetails = await this.getAccountDetails(accountId, apiKey);
-    var tarrifCode =
-        accountDetails.getAgileTarrifCode(currentDateTime: dateTime);
 
     if (tarrifCode != null) {
       prices = await octopusEnergyClient.getCurrentAgilePrices(
           tarrifCode: tarrifCode);
 
       if (prices != null && onlyAfterDateTime) {
-        prices.removeWhere((p) => p.validTo.isBefore(dateTime));
+        prices.removeWhere((p) => p.validTo.isBefore(dateTimeFetcher()));
         prices.sort((a, b) => a.validFrom.compareTo(b.validFrom));
       }
     }
 
     return prices;
-    // return Future.delayed(
-    //     Duration(seconds: 5),
-    //     () => [
-    //           AgilePrice(validFrom: DateTime.now(), valueIncVat: 12.05),
-    //           AgilePrice(validFrom: DateTime.now(), valueIncVat: 13.05),
-    //           AgilePrice(validFrom: DateTime.now(), valueIncVat: 13.05),
-    //           AgilePrice(validFrom: DateTime.now(), valueIncVat: 13.05),
-    //           AgilePrice(validFrom: DateTime.now(), valueIncVat: 13.05),
-    //           AgilePrice(validFrom: DateTime.now(), valueIncVat: 13.05),
-    //           AgilePrice(validFrom: DateTime.now(), valueIncVat: 13.05),
-    //           AgilePrice(validFrom: DateTime.now(), valueIncVat: 13.05),
-    //           AgilePrice(validFrom: DateTime.now(), valueIncVat: 13.05),
-    //           AgilePrice(validFrom: DateTime.now(), valueIncVat: 13.05),
-    //           AgilePrice(validFrom: DateTime.now(), valueIncVat: 13.05),
-    //           AgilePrice(validFrom: DateTime.now(), valueIncVat: 13.05),
-    //           AgilePrice(validFrom: DateTime.now(), valueIncVat: 13.05),
-    //         ]);
   }
 }

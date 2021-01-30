@@ -194,26 +194,33 @@ class _MonthsOverviewState extends State<MonthsOverview> {
                                       ],
                                     ),
                                   ),
-                                  Padding(
-                                    padding: const EdgeInsets.fromLTRB(
-                                        10.0, 0, 10, 0),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          'Current Prices',
-                                          style: TextStyle(fontSize: 24),
-                                        ),
-                                        Padding(
+                                  octoManager.showAgilePrices
+                                      ? Padding(
                                           padding: const EdgeInsets.fromLTRB(
-                                              10, 0, 0, 0),
-                                          child: Icon(
-                                              FontAwesomeIcons.questionCircle),
+                                              10.0, 0, 10, 0),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Text(
+                                                'Current Prices',
+                                                style: TextStyle(fontSize: 24),
+                                              ),
+                                              Tooltip(
+                                                message:
+                                                    'Hide or show in settings',
+                                                child: Padding(
+                                                  padding:
+                                                      const EdgeInsets.fromLTRB(
+                                                          10, 0, 0, 0),
+                                                  child: Icon(FontAwesomeIcons
+                                                      .questionCircle),
+                                                ),
+                                              )
+                                            ],
+                                          ),
                                         )
-                                      ],
-                                    ),
-                                  )
+                                      : Container()
                                 ],
                               ),
                             ]),
@@ -222,16 +229,15 @@ class _MonthsOverviewState extends State<MonthsOverview> {
                            * Agile price section
                            *******************/
                           //What will become the new agile price section
-                          settings.showAgilePrices
+                          octoManager.showAgilePrices
                               ? SliverToBoxAdapter(
                                   child: Padding(
                                     padding: const EdgeInsets.fromLTRB(
                                         10, 5, 10, 10),
                                     child: FutureBuilder<List<AgilePrice>>(
                                         future: octoManager.getAgilePrices(
-                                            accountId: settings.accountId,
-                                            apiKey: settings.apiKey,
-                                            dateTime: DateTime.now(),
+                                            tarrifCode:
+                                                octoManager.agileTarrifCode,
                                             onlyAfterDateTime: true),
                                         builder: (context, snapshot) {
                                           if (!snapshot.hasData) {
@@ -254,6 +260,11 @@ class _MonthsOverviewState extends State<MonthsOverview> {
                                                 ),
                                               ),
                                             );
+                                          } else if (snapshot.hasError) {
+                                            return Container(
+                                              child: Text(
+                                                  'Uh oh, could not get Agile prices'),
+                                            );
                                           }
 
                                           return Container(
@@ -273,7 +284,11 @@ class _MonthsOverviewState extends State<MonthsOverview> {
                                         }),
                                   ),
                                 )
-                              : Container(),
+                              : SliverToBoxAdapter(
+                                  child: Container(
+                                    height: 100,
+                                  ),
+                                ),
                           SliverList(
                             delegate: SliverChildListDelegate([
                               Column(

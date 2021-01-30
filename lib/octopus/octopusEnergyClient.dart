@@ -6,8 +6,10 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
 final octopusDateformat = DateFormat('yyyy-MM-ddTHH:mm:ss');
+final DateTime Function() defaultDateTimeFetcher = () => DateTime.now();
 
 class OctopusEneryClient {
+  DateTime Function() dateTimeFetcher = defaultDateTimeFetcher;
   OctopusEneryClient();
 
   Map<String, String> getHeaders(String apiKey) {
@@ -290,6 +292,8 @@ class EnergyDay {
 }
 
 class EnergyAccount {
+  DateTime Function() dateTimeFetcher = defaultDateTimeFetcher;
+
   String accountNumber;
   num id;
   DateTime movedInAt;
@@ -328,18 +332,30 @@ class EnergyAccount {
         meterPoints.map((p) => ElectricityMeterPoint.fromJson(p)).toList();
   }
 
-  bool hasActiveAgileAccount({DateTime currentDateTime}) {
+  bool hasActiveAgileAccount({DateTime Function() inDateTimeFetcher}) {
+    DateTime cTime;
+    if (inDateTimeFetcher == null) {
+      cTime = dateTimeFetcher();
+    } else {
+      cTime = inDateTimeFetcher();
+    }
     var agreements = electricityMeterPoints
         ?.map((e) => e.agreements)
         ?.expand((el) => el)
         ?.toList();
 
-    return agreements.any((a) =>
-        (a.validTo.isAfter(currentDateTime) && a.tarrifCode.contains('AGILE')));
+    return agreements.any(
+        (a) => (a.validTo.isAfter(cTime) && a.tarrifCode.contains('AGILE')));
   }
 
   ///This method will return the first active AGLIE tarrif code, if available
-  String getAgileTarrifCode({DateTime currentDateTime}) {
+  String getAgileTarrifCode({DateTime Function() inDateTimeFetcher}) {
+    DateTime cTime;
+    if (inDateTimeFetcher == null) {
+      cTime = dateTimeFetcher();
+    } else {
+      cTime = inDateTimeFetcher();
+    }
     var agreements = electricityMeterPoints
         ?.map((e) => e.agreements)
         ?.expand((el) => el)
@@ -347,8 +363,7 @@ class EnergyAccount {
 
     return agreements
         .firstWhere(
-            (a) => (a.validTo.isAfter(currentDateTime) &&
-                a.tarrifCode.contains('AGILE')),
+            (a) => (a.validTo.isAfter(cTime) && a.tarrifCode.contains('AGILE')),
             orElse: null)
         ?.tarrifCode;
   }

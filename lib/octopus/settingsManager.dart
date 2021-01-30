@@ -3,8 +3,15 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class SettingsManager extends ChangeNotifier {
+  //Keys
+  static const String ACTIVE_AGILE_TARRIF_KEY = 'activeAgileTarrif';
+  static const String SELECTED_AGILE_TARRIF_KEY = 'selectedAgileTarrif';
+  static const String SHOW_AGILE_PRICES_KEY = 'showAgilePrices';
+
   final FlutterSecureStorage _localStore;
-  bool showAgilePrices = true;
+  bool showAgilePrices;
+  String activeAgileTarrif;
+  String selectedAgileTarrif;
   bool validated = false;
   String apiKey;
   String accountId;
@@ -45,6 +52,16 @@ class SettingsManager extends ChangeNotifier {
     } else if (tBrightness == 'dark') {
       _themeBrightness = ThemeBrightness.DARK;
     }
+    //try to load agile setttings
+    activeAgileTarrif = await _localStore.read(key: ACTIVE_AGILE_TARRIF_KEY);
+    selectedAgileTarrif =
+        await _localStore.read(key: SELECTED_AGILE_TARRIF_KEY);
+    var showAgileString = await _localStore.read(key: SHOW_AGILE_PRICES_KEY);
+    showAgilePrices = showAgileString == 'true'
+        ? true
+        : showAgileString == 'false'
+            ? false
+            : null;
 
     return accountDetailsSet;
   }
@@ -82,12 +99,31 @@ class SettingsManager extends ChangeNotifier {
     return true;
   }
 
+  Future<bool> saveActiveAgileTarrif(String tarrif) async {
+    await _localStore.write(key: ACTIVE_AGILE_TARRIF_KEY, value: tarrif);
+    return true;
+  }
+
+  Future<bool> saveSelectedAgileTarrif(String tarrif) async {
+    await _localStore.write(key: SELECTED_AGILE_TARRIF_KEY, value: tarrif);
+    return true;
+  }
+
+  Future<bool> saveShowAgilePrices(bool showPrices) async {
+    await _localStore.write(
+        key: SHOW_AGILE_PRICES_KEY, value: showPrices.toString());
+    return true;
+  }
+
   Future<bool> cleanSettings() async {
     //update secure store from local values...
     _localStore.write(key: 'apiKey', value: '');
     _localStore.write(key: 'accountId', value: '');
     _localStore.write(key: 'meterPoint', value: '');
     _localStore.write(key: 'meter', value: '');
+    _localStore.write(key: ACTIVE_AGILE_TARRIF_KEY, value: '');
+    _localStore.write(key: SELECTED_AGILE_TARRIF_KEY, value: '');
+    _localStore.write(key: SHOW_AGILE_PRICES_KEY, value: '');
 
     //clear in memory values...
     validated = false;
@@ -95,6 +131,10 @@ class SettingsManager extends ChangeNotifier {
     accountId = null;
     meterPoint = null;
     meter = null;
+    //agile vars
+    activeAgileTarrif = null;
+    selectedAgileTarrif = null;
+    showAgilePrices = null;
 
     notifyListeners();
     return true;

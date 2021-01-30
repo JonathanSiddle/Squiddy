@@ -15,6 +15,7 @@ class BootStrap extends StatefulWidget {
 }
 
 class _BootStrapPageState extends State<BootStrap> {
+  EnergyAccount account;
   // var _formKey = GlobalKey<FormState>();
   Map<String, List<String>> meterPoints;
   String selectedMp;
@@ -133,7 +134,7 @@ class _BootStrapPageState extends State<BootStrap> {
                                         setState(() {
                                           _checkingAccountDetails = true;
                                         });
-                                        var account = await octopusManager
+                                        account = await octopusManager
                                             .getAccountDetails(
                                                 accountTEC.text.trim(),
                                                 apiKeyTEC.text.trim());
@@ -255,6 +256,16 @@ class _BootStrapPageState extends State<BootStrap> {
                                       if (proceed) {
                                         print('Tapped Yes');
                                         await settingsManager.saveSettings();
+                                        //save agile settings if available
+                                        if (account != null &&
+                                            account.hasActiveAgileAccount()) {
+                                          settingsManager.activeAgileTarrif =
+                                              account.getAgileTarrifCode();
+                                          settingsManager.showAgilePrices =
+                                              true;
+                                          settingsManager.selectedAgileTarrif =
+                                              account.getAgileTarrifCode();
+                                        }
                                         //make sure octomanager re-inits data with new settings
                                         octopusManager.initData(
                                             apiKey: settingsManager.apiKey,
