@@ -49,11 +49,21 @@ class _MonthsOverviewState extends State<MonthsOverview> {
 
   refreshData() async {
     if (octoManager != null && settings != null) {
+      octoManager.showAgilePrices = settings.showAgilePrices;
+      octoManager.agileTarrifCode = settings.activeAgileTarrif;
       await octoManager.initData(
           apiKey: settings.apiKey,
           accountId: settings.accountId,
           meterPoint: settings.meterPoint,
-          meter: settings.meter);
+          meter: settings.meter,
+          updateAccountSettings: (EnergyAccount ea) {
+            if (ea.hasActiveAgileAccount()) {
+              settings.showAgilePrices = true;
+              settings.activeAgileTarrif = ea.getAgileTarrifCode();
+              octoManager.showAgilePrices = true;
+              octoManager.agileTarrifCode = settings.activeAgileTarrif;
+            }
+          });
     }
   }
 

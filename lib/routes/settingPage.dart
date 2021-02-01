@@ -26,6 +26,25 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     var settingsManager = Provider.of<SettingsManager>(context);
 
+    var selectedValue = 'NA';
+    var agileRegions = {
+      'NA': 'Active Tarrif',
+      '_A': 'East England',
+      '_B': 'East Midlands',
+      '_C': 'London',
+      '_D': 'North Wales, Merseyside and Cheshire',
+      '_E': 'West Midlands',
+      '_F': 'North East England',
+      '_G': 'North West England',
+      '_P': 'North Scotland',
+      '_N': 'South and Central Scotland',
+      '_J': 'South East England',
+      '_H': 'Southern England',
+      '_K': 'South Wales',
+      '_L': 'South West England',
+      '_M': 'Yorkshire'
+    };
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Settings'),
@@ -35,15 +54,18 @@ class _SettingsPageState extends State<SettingsPage> {
               onPressed: () {
                 showAboutDialog(
                     context: context,
-                    applicationIcon: Image.asset('assets/SSquid3.png',
-                        height: 50.0),
+                    applicationIcon:
+                        Image.asset('assets/SSquid3.png', height: 50.0),
                     applicationName: 'Squiddy',
                     applicationVersion: AppConfig.appVersion,
                     children: <Widget>[
                       Text(AppConfig.overview),
                       Center(
                         child: InkWell(
-                            child: Text('https://octopus.energy', style: TextStyle(color: Colors.blue),),
+                            child: Text(
+                              'https://octopus.energy',
+                              style: TextStyle(color: Colors.blue),
+                            ),
                             onTap: () => launch('https://octopus.energy')),
                       ),
                       Text(''),
@@ -53,10 +75,12 @@ class _SettingsPageState extends State<SettingsPage> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(FontAwesomeIcons.github),
-                              Text('Squiddy Project', style: TextStyle(color: Colors.blue)),
+                              Text('Squiddy Project',
+                                  style: TextStyle(color: Colors.blue)),
                             ],
                           ),
-                          onTap: () => launch('https://github.com/JonathanSiddle/Squiddy'))
+                          onTap: () => launch(
+                              'https://github.com/JonathanSiddle/Squiddy'))
                     ]);
               })
         ],
@@ -80,6 +104,21 @@ class _SettingsPageState extends State<SettingsPage> {
                 items: ThemeBrightness.values.map((tb) {
                   return DropdownMenuItem<ThemeBrightness>(
                       value: tb, child: Text(tb.niceString()));
+                }).toList()),
+            Row(
+              children: [
+                Checkbox(value: true, onChanged: (b) => print('Changed')),
+                Text('Show Agile Prices')
+              ],
+            ),
+            DropdownButton<String>(
+                isExpanded: true,
+                value: selectedValue,
+                onChanged: (v) {},
+                items: agileRegions.keys.map((key) {
+                  var value = agileRegions[key];
+                  return DropdownMenuItem<String>(
+                      value: key, child: Text(value));
                 }).toList()),
             Spacer(),
             Row(

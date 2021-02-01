@@ -14,6 +14,7 @@ class OctopusManager extends ChangeNotifier {
 
   String apiKey;
   OctopusEneryClient octopusEnergyClient;
+  EnergyAccount account;
   List<EnergyMonth> monthConsumption = List();
 
   OctopusManager(
@@ -37,10 +38,19 @@ class OctopusManager extends ChangeNotifier {
       {@required String apiKey,
       @required String accountId,
       @required String meterPoint,
-      @required String meter}) async {
+      @required String meter,
+      void Function(EnergyAccount) updateAccountSettings}) async {
     initialised = false;
     errorGettingData = false;
     timeoutError = false;
+
+    //get account details
+    try {
+      account = await octopusEnergyClient.getAccountDetails(accountId, apiKey);
+      if (updateAccountSettings != null) {
+        updateAccountSettings(account);
+      }
+    } catch (_) {}
 
     try {
       print('Initing data');
