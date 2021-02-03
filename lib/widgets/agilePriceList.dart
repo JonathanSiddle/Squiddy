@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:squiddy/octopus/OctopusManager.dart';
 import 'package:squiddy/octopus/octopusEnergyClient.dart';
+import 'package:squiddy/octopus/settingsManager.dart';
 import 'package:squiddy/widgets/agilePriceCard.dart';
 
 class AgilePriceList extends StatelessWidget {
@@ -13,6 +14,7 @@ class AgilePriceList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var octoManager = Provider.of<OctopusManager>(context);
+    var settingsManager = Provider.of<SettingsManager>(context);
 
     return Column(
       children: [
@@ -39,7 +41,7 @@ class AgilePriceList extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(10, 5, 10, 10),
           child: FutureBuilder<List<AgilePrice>>(
               future: octoManager.getAgilePrices(
-                  tarrifCode: octoManager.agileTarrifCode,
+                  tariffCode: settingsManager.activeAgileTariff,
                   onlyAfterDateTime: true),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {

@@ -8,8 +8,6 @@ class OctopusManager extends ChangeNotifier {
   var initialised = false;
   var errorGettingData = false;
   var timeoutError = false;
-  var showAgilePrices = false;
-  String agileTarrifCode;
   DateTime Function() dateTimeFetcher = () => DateTime.now();
 
   String apiKey;
@@ -104,12 +102,12 @@ class OctopusManager extends ChangeNotifier {
   }
 
   Future<List<AgilePrice>> getAgilePrices(
-      {@required String tarrifCode, @required bool onlyAfterDateTime}) async {
+      {@required String tariffCode, @required bool onlyAfterDateTime}) async {
     List<AgilePrice> prices;
 
-    if (tarrifCode != null) {
+    if (tariffCode != null) {
       prices = await octopusEnergyClient.getCurrentAgilePrices(
-          tarrifCode: tarrifCode);
+          tariffCode: tariffCode);
 
       if (prices != null && onlyAfterDateTime) {
         prices.removeWhere((p) => p.validTo.isBefore(dateTimeFetcher()));

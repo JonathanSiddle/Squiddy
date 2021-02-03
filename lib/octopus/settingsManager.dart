@@ -4,14 +4,14 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class SettingsManager extends ChangeNotifier {
   //Keys
-  static const String ACTIVE_AGILE_TARRIF_KEY = 'activeAgileTarrif';
-  static const String SELECTED_AGILE_TARRIF_KEY = 'selectedAgileTarrif';
+  static const String ACTIVE_AGILE_TARIFF_KEY = 'activeAgileTariff';
+  static const String SELECTED_AGILE_REGION_KEY = 'selectedAgileRegion';
   static const String SHOW_AGILE_PRICES_KEY = 'showAgilePrices';
 
   final FlutterSecureStorage _localStore;
-  bool showAgilePrices;
-  String activeAgileTarrif;
-  String selectedAgileTarrif;
+  bool _showAgilePrices;
+  String _activeAgileTariff;
+  String _selectedAgileRegion;
   bool validated = false;
   String apiKey;
   String accountId;
@@ -29,6 +29,31 @@ class SettingsManager extends ChangeNotifier {
   }
 
   ThemeBrightness get themeBrightness => _themeBrightness;
+
+  bool get showAgilePrices => _showAgilePrices;
+  set showAgilePrices(bool b) {
+    _showAgilePrices = b;
+
+    // notifyListeners();
+  }
+
+  String get activeAgileTariff => _activeAgileTariff;
+  set activeAgileTariff(String s) {
+    _activeAgileTariff = s;
+    // notifyListeners();
+  }
+
+  String get selectedAgileRegion => _selectedAgileRegion;
+  set selectedAgileRegion(String s) {
+    _selectedAgileRegion = s;
+    // notifyListeners();
+  }
+
+  saveAgileInformation() {
+    saveShowAgilePrices(_showAgilePrices);
+    saveActiveAgileTariff(activeAgileTariff);
+    saveSelectedAgileRegion(_selectedAgileRegion);
+  }
 
   bool get accountDetailsSet => (apiKey != null &&
       apiKey.trim() != '' &&
@@ -53,11 +78,11 @@ class SettingsManager extends ChangeNotifier {
       _themeBrightness = ThemeBrightness.DARK;
     }
     //try to load agile setttings
-    activeAgileTarrif = await _localStore.read(key: ACTIVE_AGILE_TARRIF_KEY);
-    selectedAgileTarrif =
-        await _localStore.read(key: SELECTED_AGILE_TARRIF_KEY);
+    _activeAgileTariff = await _localStore.read(key: ACTIVE_AGILE_TARIFF_KEY);
+    _selectedAgileRegion =
+        await _localStore.read(key: SELECTED_AGILE_REGION_KEY);
     var showAgileString = await _localStore.read(key: SHOW_AGILE_PRICES_KEY);
-    showAgilePrices = showAgileString == 'true'
+    _showAgilePrices = showAgileString == 'true'
         ? true
         : showAgileString == 'false'
             ? false
@@ -99,13 +124,13 @@ class SettingsManager extends ChangeNotifier {
     return true;
   }
 
-  Future<bool> saveActiveAgileTarrif(String tarrif) async {
-    await _localStore.write(key: ACTIVE_AGILE_TARRIF_KEY, value: tarrif);
+  Future<bool> saveActiveAgileTariff(String tariff) async {
+    await _localStore.write(key: ACTIVE_AGILE_TARIFF_KEY, value: tariff);
     return true;
   }
 
-  Future<bool> saveSelectedAgileTarrif(String tarrif) async {
-    await _localStore.write(key: SELECTED_AGILE_TARRIF_KEY, value: tarrif);
+  Future<bool> saveSelectedAgileRegion(String tariff) async {
+    await _localStore.write(key: SELECTED_AGILE_REGION_KEY, value: tariff);
     return true;
   }
 
@@ -121,8 +146,8 @@ class SettingsManager extends ChangeNotifier {
     _localStore.write(key: 'accountId', value: '');
     _localStore.write(key: 'meterPoint', value: '');
     _localStore.write(key: 'meter', value: '');
-    _localStore.write(key: ACTIVE_AGILE_TARRIF_KEY, value: '');
-    _localStore.write(key: SELECTED_AGILE_TARRIF_KEY, value: '');
+    _localStore.write(key: ACTIVE_AGILE_TARIFF_KEY, value: '');
+    _localStore.write(key: SELECTED_AGILE_REGION_KEY, value: '');
     _localStore.write(key: SHOW_AGILE_PRICES_KEY, value: '');
 
     //clear in memory values...
@@ -132,9 +157,9 @@ class SettingsManager extends ChangeNotifier {
     meterPoint = null;
     meter = null;
     //agile vars
-    activeAgileTarrif = null;
-    selectedAgileTarrif = null;
-    showAgilePrices = null;
+    _activeAgileTariff = null;
+    _selectedAgileRegion = null;
+    _showAgilePrices = null;
 
     notifyListeners();
     return true;

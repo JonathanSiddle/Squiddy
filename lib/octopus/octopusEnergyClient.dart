@@ -117,13 +117,13 @@ class OctopusEneryClient {
   }
 
   Future<List<AgilePrice>> getCurrentAgilePrices(
-      {@required String tarrifCode}) async {
+      {@required String tariffCode}) async {
     var agilePrices = List<AgilePrice>();
 
     http.Response response;
     try {
       response = await http.get(
-          'https://api.octopus.energy/v1/products/AGILE-18-02-21/electricity-tariffs/$tarrifCode/standard-unit-rates');
+          'https://api.octopus.energy/v1/products/AGILE-18-02-21/electricity-tariffs/$tariffCode/standard-unit-rates');
     } catch (e) {
       return null;
     }
@@ -345,11 +345,11 @@ class EnergyAccount {
         ?.toList();
 
     return agreements.any(
-        (a) => (a.validTo.isAfter(cTime) && a.tarrifCode.contains('AGILE')));
+        (a) => (a.validTo.isAfter(cTime) && a.tariffCode.contains('AGILE')));
   }
 
-  ///This method will return the first active AGLIE tarrif code, if available
-  String getAgileTarrifCode({DateTime Function() inDateTimeFetcher}) {
+  ///This method will return the first active AGLIE tariff code, if available
+  String getAgileTariffCode({DateTime Function() inDateTimeFetcher}) {
     DateTime cTime;
     if (inDateTimeFetcher == null) {
       cTime = dateTimeFetcher();
@@ -363,9 +363,9 @@ class EnergyAccount {
 
     return agreements
         .firstWhere(
-            (a) => (a.validTo.isAfter(cTime) && a.tarrifCode.contains('AGILE')),
+            (a) => (a.validTo.isAfter(cTime) && a.tariffCode.contains('AGILE')),
             orElse: null)
-        ?.tarrifCode;
+        ?.tariffCode;
   }
 }
 
@@ -419,12 +419,12 @@ class ElectricityRegister {
 }
 
 class ElectricityAgreement {
-  String tarrifCode;
+  String tariffCode;
   DateTime validFrom;
   DateTime validTo;
 
   ElectricityAgreement.fromJson(Map<String, dynamic> json) {
-    tarrifCode = json['tariff_code'];
+    tariffCode = json['tariff_code'];
     try {
       validFrom = octopusDateformat.parse(json['valid_from']);
     } catch (e) {

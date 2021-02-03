@@ -65,8 +65,6 @@ class _MyAppState extends State<MyApp> {
       if (octoManager != null &&
           !octoManager.initialised &&
           !octoManager.errorGettingData) {
-        octoManager.showAgilePrices = settings.showAgilePrices;
-        octoManager.agileTarrifCode = settings.activeAgileTarrif;
         print('Initialising octoManager data');
         print('Using meterpoint: ${settings.meterPoint}');
         octoManager.initData(
@@ -75,12 +73,26 @@ class _MyAppState extends State<MyApp> {
             meterPoint: settings.meterPoint,
             meter: settings.meter,
             updateAccountSettings: (EnergyAccount ea) {
-              if (ea.hasActiveAgileAccount()) {
-                settings.showAgilePrices = true;
-                settings.activeAgileTarrif = ea.getAgileTarrifCode();
-                octoManager.showAgilePrices = true;
-                octoManager.agileTarrifCode = settings.activeAgileTarrif;
+              if (settings.showAgilePrices == null) {
+                if (ea.hasActiveAgileAccount()) {
+                  settings.showAgilePrices = true;
+                  settings.activeAgileTariff = ea.getAgileTariffCode();
+                }
+              } else if (settings.showAgilePrices) {
+                if (ea.hasActiveAgileAccount() &&
+                    settings.selectedAgileRegion == 'AT') {
+                  settings.showAgilePrices = true;
+                  settings.activeAgileTariff = ea.getAgileTariffCode();
+                } else if (settings.selectedAgileRegion != null &&
+                    settings.selectedAgileRegion != '') {
+                  settings.activeAgileTariff =
+                      'E-1R-AGILE-18-02-21${settings.selectedAgileRegion}';
+                }
+              } else {
+                settings.activeAgileTariff = '';
+                settings.selectedAgileRegion = '';
               }
+              settings.saveAgileInformation();
             });
       }
     }

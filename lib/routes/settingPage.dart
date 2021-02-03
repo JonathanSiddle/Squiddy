@@ -15,6 +15,8 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   OctopusManager octoManager;
+  String selectedValue;
+  bool showAgilePrices;
 
   @override
   void didChangeDependencies() {
@@ -25,24 +27,30 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     var settingsManager = Provider.of<SettingsManager>(context);
+    if (settingsManager.selectedAgileRegion != null &&
+        settingsManager.selectedAgileRegion != '') {
+      selectedValue = settingsManager.selectedAgileRegion;
+    } else {
+      selectedValue = 'AT';
+    }
+    showAgilePrices = settingsManager.showAgilePrices ?? false;
 
-    var selectedValue = 'NA';
     var agileRegions = {
-      'NA': 'Active Tarrif',
-      '_A': 'East England',
-      '_B': 'East Midlands',
-      '_C': 'London',
-      '_D': 'North Wales, Merseyside and Cheshire',
-      '_E': 'West Midlands',
-      '_F': 'North East England',
-      '_G': 'North West England',
-      '_P': 'North Scotland',
-      '_N': 'South and Central Scotland',
-      '_J': 'South East England',
-      '_H': 'Southern England',
-      '_K': 'South Wales',
-      '_L': 'South West England',
-      '_M': 'Yorkshire'
+      'AT': 'Active Tariff',
+      '-A': 'East England',
+      '-B': 'East Midlands',
+      '-C': 'London',
+      '-D': 'North Wales, Merseyside and Cheshire',
+      '-E': 'West Midlands',
+      '-F': 'North East England',
+      '-G': 'North West England',
+      '-P': 'North Scotland',
+      '-N': 'South and Central Scotland',
+      '-J': 'South East England',
+      '-H': 'Southern England',
+      '-K': 'South Wales',
+      '-L': 'South West England',
+      '-M': 'Yorkshire'
     };
 
     return Scaffold(
@@ -107,14 +115,26 @@ class _SettingsPageState extends State<SettingsPage> {
                 }).toList()),
             Row(
               children: [
-                Checkbox(value: true, onChanged: (b) => print('Changed')),
+                Checkbox(
+                    value: true,
+                    onChanged: (b) {
+                      settingsManager.showAgilePrices = b;
+                      settingsManager.selectedAgileRegion = selectedValue;
+                      settingsManager.saveAgileInformation();
+                    }),
                 Text('Show Agile Prices')
               ],
             ),
             DropdownButton<String>(
                 isExpanded: true,
                 value: selectedValue,
-                onChanged: (v) {},
+                onChanged: (v) {
+                  setState(() {
+                    selectedValue = v;
+                  });
+                  settingsManager.selectedAgileRegion = v;
+                  settingsManager.saveAgileInformation();
+                },
                 items: agileRegions.keys.map((key) {
                   var value = agileRegions[key];
                   return DropdownMenuItem<String>(

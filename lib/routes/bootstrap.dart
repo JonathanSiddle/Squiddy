@@ -259,12 +259,21 @@ class _BootStrapPageState extends State<BootStrap> {
                                         //save agile settings if available
                                         if (account != null &&
                                             account.hasActiveAgileAccount()) {
-                                          settingsManager.activeAgileTarrif =
-                                              account.getAgileTarrifCode();
+                                          settingsManager.activeAgileTariff =
+                                              account.getAgileTariffCode();
                                           settingsManager.showAgilePrices =
                                               true;
-                                          settingsManager.selectedAgileTarrif =
-                                              account.getAgileTarrifCode();
+                                          settingsManager.selectedAgileRegion =
+                                              account.getAgileTariffCode();
+                                        } else {
+                                          settingsManager.activeAgileTariff =
+                                              '';
+                                          settingsManager.showAgilePrices =
+                                              false;
+                                          settingsManager.selectedAgileRegion =
+                                              '';
+                                          settingsManager
+                                              .saveAgileInformation();
                                         }
                                         //make sure octomanager re-inits data with new settings
                                         octopusManager.initData(

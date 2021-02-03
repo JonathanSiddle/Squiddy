@@ -49,19 +49,24 @@ class _MonthsOverviewState extends State<MonthsOverview> {
 
   refreshData() async {
     if (octoManager != null && settings != null) {
-      octoManager.showAgilePrices = settings.showAgilePrices;
-      octoManager.agileTarrifCode = settings.activeAgileTarrif;
       await octoManager.initData(
           apiKey: settings.apiKey,
           accountId: settings.accountId,
           meterPoint: settings.meterPoint,
           meter: settings.meter,
           updateAccountSettings: (EnergyAccount ea) {
-            if (ea.hasActiveAgileAccount()) {
-              settings.showAgilePrices = true;
-              settings.activeAgileTarrif = ea.getAgileTarrifCode();
-              octoManager.showAgilePrices = true;
-              octoManager.agileTarrifCode = settings.activeAgileTarrif;
+            if (settings.showAgilePrices) {
+              if (ea.hasActiveAgileAccount()) {
+                settings.showAgilePrices = true;
+                settings.activeAgileTariff = ea.getAgileTariffCode();
+              } else if (settings.selectedAgileRegion != null &&
+                  settings.selectedAgileRegion != '') {
+                settings.activeAgileTariff =
+                    'E-1R-AGILE-18-02-21${settings.selectedAgileRegion}';
+              }
+            } else {
+              settings.activeAgileTariff = '';
+              settings.selectedAgileRegion = '';
             }
           });
     }
@@ -213,7 +218,7 @@ class _MonthsOverviewState extends State<MonthsOverview> {
                            * Agile price section
                            *******************/
                           //What will become the new agile price section
-                          octoManager.showAgilePrices
+                          settings.showAgilePrices
                               ? SliverToBoxAdapter(
                                   child: AgilePriceList(),
                                 )
