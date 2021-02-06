@@ -56,13 +56,14 @@ class _MonthsOverviewState extends State<MonthsOverview> {
           meter: settings.meter,
           updateAccountSettings: (EnergyAccount ea) {
             if (settings.showAgilePrices) {
-              if (ea.hasActiveAgileAccount()) {
-                settings.showAgilePrices = true;
-                settings.activeAgileTariff = ea.getAgileTariffCode();
-              } else if (settings.selectedAgileRegion != null &&
-                  settings.selectedAgileRegion != '') {
+              if (settings.selectedAgileRegion != null &&
+                  settings.selectedAgileRegion != '' &&
+                  settings.selectedAgileRegion != 'AT') {
                 settings.activeAgileTariff =
                     'E-1R-AGILE-18-02-21${settings.selectedAgileRegion}';
+              } else if (ea.hasActiveAgileAccount()) {
+                settings.showAgilePrices = true;
+                settings.activeAgileTariff = ea.getAgileTariffCode();
               }
             } else {
               settings.activeAgileTariff = '';
