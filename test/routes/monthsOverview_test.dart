@@ -14,6 +14,9 @@ import 'mocks.dart';
 void main() {
   Widget makeWidgetTestable({List<EnergyMonth> testData}) {
     var settingManager = SettingsManager(localStore: MockLocalStore());
+    settingManager.showAgilePrices = false;
+    settingManager.selectedAgileRegion = '';
+    settingManager.activeAgileTariff = '';
     var octoManager =
         OctopusManager(octopusEnergyClient: MockOctopusEnergyCLient());
 
@@ -345,20 +348,20 @@ void main() {
       expect(find.byType(OverviewSummary), findsOneWidget);
 
       //have to scroll a little bit to make sure sqiddyCard is found
-      await tester.drag(find.text('Last Six Months'), Offset(100, -300));
+      await tester.drag(find.text('Last Six Months'), Offset(100, -310));
       await tester.pumpAndSettle();
       // // await tester.pump();
       expect(find.widgetWithText(Container, 'Jan 1990'), findsOneWidget);
       expect(find.widgetWithText(Container, 'Feb 1990'), findsOneWidget);
 
-      await tester.drag(find.text('Last Six Months'), Offset(100, -500));
+      await tester.drag(find.text('Last Six Months'), Offset(100, -510));
       await tester.pumpAndSettle();
 
       expect(find.widgetWithText(Container, 'Mar 1990'), findsOneWidget);
       expect(find.widgetWithText(Container, 'Apr 1990'), findsOneWidget);
       expect(find.widgetWithText(Container, 'May 1990'), findsOneWidget);
 
-      await tester.drag(find.text('May 1990'), Offset(100, -500));
+      await tester.drag(find.text('May 1990'), Offset(100, -510));
       await tester.pumpAndSettle();
 
       expect(find.widgetWithText(Container, 'Jun 1990'), findsOneWidget);

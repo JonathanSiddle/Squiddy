@@ -225,7 +225,7 @@ class _MonthsOverviewState extends State<MonthsOverview> {
                                 )
                               : SliverToBoxAdapter(
                                   child: Container(
-                                    height: 100,
+                                    height: 10,
                                   ),
                                 ),
                           SliverList(
