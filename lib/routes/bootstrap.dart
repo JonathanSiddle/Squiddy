@@ -168,6 +168,7 @@ class _BootStrapPageState extends State<BootStrap> {
                                                   selectedMeter;
                                               //set meters
                                               _stepIndex += 1;
+                                              _checkingAccountDetails = false;
                                             });
                                           }
                                         } else {

@@ -339,8 +339,11 @@ class EnergyAccount {
     } else {
       cTime = inDateTimeFetcher();
     }
+
+    electricityMeterPoints.retainWhere((element) => element.agreements != null);
+
     var agreements = electricityMeterPoints
-        ?.map((e) => e.agreements)
+        ?.map((e) => e?.agreements)
         ?.expand((el) => el)
         ?.toList();
 

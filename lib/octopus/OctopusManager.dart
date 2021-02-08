@@ -44,7 +44,7 @@ class OctopusManager extends ChangeNotifier {
 
     //get account details
     try {
-      account = await octopusEnergyClient.getAccountDetails(accountId, apiKey);
+      account = await octopusEnergyClient?.getAccountDetails(accountId, apiKey);
       if (updateAccountSettings != null) {
         updateAccountSettings(account);
       }
@@ -61,7 +61,7 @@ class OctopusManager extends ChangeNotifier {
       print('Uh error getting data');
     }
 
-    if (monthConsumption == null) {
+    if (monthConsumption == null || monthConsumption.length == 0) {
       errorGettingData = true;
     } else {
       initialised = true;

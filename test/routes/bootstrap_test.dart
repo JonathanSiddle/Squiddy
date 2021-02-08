@@ -37,118 +37,47 @@ main() {
   }
 
   group('Bootstrap page tests', () {
-    // testWidgets('Test can display page', (WidgetTester tester) async {
-    //   var widget = makeWidgetTestable();
-    //   await tester.pumpWidget(widget);
-    //   await tester.pumpAndSettle();
+    testWidgets('Test can display page', (WidgetTester tester) async {
+      var widget = makeWidgetTestable();
+      await tester.pumpWidget(widget);
+      await tester.pumpAndSettle();
 
-    //   expect(find.byType(Image), findsOneWidget);
-    // });
+      expect(find.byType(Image), findsOneWidget);
+    });
 
-    // testWidgets('Enter incorrect account details, shows error dialog',
-    //     (WidgetTester tester) async {
-    //   var mockOctoClient = MockOctopusEnergyCLient();
-    //   when(mockOctoClient.getAccountDetails(any, any))
-    //       .thenAnswer((_) => Future.delayed(Duration(seconds: 10), null));
+    testWidgets('Enter incorrect account details, shows error dialog',
+        (WidgetTester tester) async {
+      var mockOctoClient = MockOctopusEnergyCLient();
+      when(mockOctoClient.getAccountDetails(any, any))
+          .thenAnswer((_) => Future.delayed(Duration(seconds: 10), null));
 
-    //   var widget = makeWidgetTestable(octoEnergyClient: mockOctoClient);
-    //   await tester.pumpWidget(widget);
-    //   await tester.pumpAndSettle();
+      var widget = makeWidgetTestable(octoEnergyClient: mockOctoClient);
+      await tester.pumpWidget(widget);
+      await tester.pumpAndSettle();
 
-    //   await tester.drag(find.byKey(Key('apiKey')), Offset(100, -800));
-    //   await tester.pumpAndSettle();
+      await tester.drag(find.byKey(Key('apiKey')), Offset(100, -800));
+      await tester.pumpAndSettle();
 
-    //   await tester.enterText(find.byKey(Key('apiKey')), 'testKey');
-    //   await tester.pumpAndSettle();
-    //   await tester.enterText(find.byKey(Key('accountId')), 'testAccount');
-    //   await tester.pumpAndSettle();
-    //   await tester.drag(find.byKey(Key('apiKey')), Offset(100, -300));
+      await tester.enterText(find.byKey(Key('apiKey')), 'testKey');
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(Key('accountId')), 'testAccount');
+      await tester.pumpAndSettle();
+      await tester.drag(find.byKey(Key('apiKey')), Offset(100, -300));
 
-    //   await tester.tap(find.text('Go'));
-    //   await tester.pump(Duration(seconds: 5));
+      await tester.tap(find.text('Go'));
+      await tester.pump(Duration(seconds: 5));
 
-    //   expect(find.byType(CircularProgressIndicator), findsOneWidget);
-    //   await tester.pumpAndSettle();
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      await tester.pumpAndSettle();
 
-    //   expect(find.text('Uh oh'), findsOneWidget);
+      expect(find.text('Uh oh'), findsOneWidget);
 
-    //   await tester.tap(find.text('OK'));
-    //   await tester.pumpAndSettle();
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
 
-    //   expect(find.byKey(Key('apiKey')), findsOneWidget);
-    //   expect(find.byKey(Key('accountId')), findsOneWidget);
-    // });
-
-    // testWidgets(
-    //     'Can correctly enter account details and selecter meter point and meter',
-    //     (WidgetTester tester) async {
-    //   var energyConsumption = List<EnergyConsumption>.from(
-    //       [EnergyConsumption(), EnergyConsumption()]);
-    //   var meterPoints = List<ElectricityMeterPoint>.from([
-    //     ElectricityMeterPoint(
-    //         mpan: 'meter1',
-    //         meters: List<ElectricityMeter>.from([
-    //           ElectricityMeter(serialNumber: '111'),
-    //           ElectricityMeter(serialNumber: '112'),
-    //           ElectricityMeter(serialNumber: '113'),
-    //         ])),
-    //     ElectricityMeterPoint(
-    //         mpan: 'meter2',
-    //         meters: List<ElectricityMeter>.from([
-    //           ElectricityMeter(serialNumber: '211'),
-    //           ElectricityMeter(serialNumber: '212'),
-    //           ElectricityMeter(serialNumber: '213'),
-    //         ])),
-    //   ]);
-    //   var accountDetails = EnergyAccount(
-    //       accountNumber: 'a123', electricityMeterPoints: meterPoints);
-    //   var mockOctoClient = MockOctopusEnergyCLient();
-    //   when(mockOctoClient.getAccountDetails(any, any)).thenAnswer(
-    //       (_) => Future.delayed(Duration(seconds: 10), () => accountDetails));
-    //   when(mockOctoClient.getConsumptionLast30Days(any, any, any))
-    //       .thenAnswer((_) => Future.value(energyConsumption));
-    //   var mockLocalStore = MockLocalStore();
-    //   when(mockLocalStore.read(key: argThat(isNotNull, named: 'key')))
-    //       .thenAnswer((_) => Future.value('test'));
-
-    //   var widget = makeWidgetTestable(
-    //       octoEnergyClient: mockOctoClient, store: mockLocalStore);
-    //   await tester.pumpWidget(widget);
-    //   await tester.pumpAndSettle();
-
-    //   await tester.drag(find.byKey(Key('apiKey')), Offset(100, -800));
-    //   await tester.pumpAndSettle();
-
-    //   await tester.enterText(find.byKey(Key('apiKey')), 'testKey');
-    //   await tester.pumpAndSettle();
-    //   await tester.enterText(find.byKey(Key('accountId')), 'testAccount');
-    //   await tester.pumpAndSettle();
-    //   await tester.drag(find.byKey(Key('apiKey')), Offset(100, -300));
-
-    //   await tester.tap(find.text('Go'));
-    //   await tester.pump(Duration(seconds: 5));
-
-    //   expect(find.byType(CircularProgressIndicator), findsOneWidget);
-
-    //   await tester.pumpAndSettle();
-
-    //   await tester.drag(find.text('Squiddy'), Offset(100, -800));
-    //   await tester.pumpAndSettle();
-
-    //   await tester.tap(find.text('Test'));
-    //   // await tester.pump(Duration(seconds: 5));
-    //   await tester.pump(Duration(seconds: 5));
-
-    //   expect(find.text('Confirm'), findsOneWidget);
-
-    //   await tester.tap(find.text('Yes'));
-    //   await tester.pumpAndSettle();
-
-    //   verify(mockLocalStore.write(
-    //           key: argThat(isNotNull, named: 'key'),
-    //           value: argThat(isNotNull, named: 'value')))
-    //       .called(4);
-    // });
+      expect(find.byKey(Key('apiKey')), findsOneWidget);
+      expect(find.byKey(Key('accountId')), findsOneWidget);
+    });
 
     testWidgets(
         'Can correctly enter account details and selecter meter point and meter',
@@ -214,84 +143,88 @@ main() {
 
       await tester.tap(find.text('Yes'));
       await tester.pumpAndSettle();
+      //make sure to pump enough time to avoid pending timers
+      await tester.pump(Duration(seconds: 10));
 
       verify(mockLocalStore.write(
               key: argThat(isNotNull, named: 'key'),
               value: argThat(isNotNull, named: 'value')))
-          .called(4);
+          .called(7);
     });
 
-    // testWidgets('Can deal with results timeout', (WidgetTester tester) async {
-    //   var energyConsumption = List<EnergyConsumption>.from(
-    //       [EnergyConsumption(), EnergyConsumption()]);
-    //   var meterPoints = List<ElectricityMeterPoint>.from([
-    //     ElectricityMeterPoint(
-    //         mpan: 'meter1',
-    //         meters: List<ElectricityMeter>.from([
-    //           ElectricityMeter(serialNumber: '111'),
-    //           ElectricityMeter(serialNumber: '112'),
-    //           ElectricityMeter(serialNumber: '113'),
-    //         ])),
-    //     ElectricityMeterPoint(
-    //         mpan: 'meter2',
-    //         meters: List<ElectricityMeter>.from([
-    //           ElectricityMeter(serialNumber: '211'),
-    //           ElectricityMeter(serialNumber: '212'),
-    //           ElectricityMeter(serialNumber: '213'),
-    //         ])),
-    //   ]);
-    //   var accountDetails = EnergyAccount(
-    //       accountNumber: 'a123', electricityMeterPoints: meterPoints);
-    //   var mockOctoClient = MockOctopusEnergyCLient();
-    //   when(mockOctoClient.getAccountDetails(any, any)).thenAnswer(
-    //       (_) => Future.delayed(Duration(seconds: 10), () => accountDetails));
-    //   when(mockOctoClient.getConsumptionLast30Days(any, any, any)).thenAnswer(
-    //       (_) =>
-    //           Future.delayed(Duration(seconds: 60), () => energyConsumption));
-    //   var mockLocalStore = MockLocalStore();
-    //   when(mockLocalStore.read(key: argThat(isNotNull, named: 'key')))
-    //       .thenAnswer((_) => Future.value('test'));
+    testWidgets('Can deal with results timeout', (WidgetTester tester) async {
+      var energyConsumption = List<EnergyConsumption>.from(
+          [EnergyConsumption(), EnergyConsumption()]);
+      var meterPoints = List<ElectricityMeterPoint>.from([
+        ElectricityMeterPoint(
+            mpan: 'meter1',
+            meters: List<ElectricityMeter>.from([
+              ElectricityMeter(serialNumber: '111'),
+              ElectricityMeter(serialNumber: '112'),
+              ElectricityMeter(serialNumber: '113'),
+            ])),
+        ElectricityMeterPoint(
+            mpan: 'meter2',
+            meters: List<ElectricityMeter>.from([
+              ElectricityMeter(serialNumber: '211'),
+              ElectricityMeter(serialNumber: '212'),
+              ElectricityMeter(serialNumber: '213'),
+            ])),
+      ]);
+      var accountDetails = EnergyAccount(
+          accountNumber: 'a123', electricityMeterPoints: meterPoints);
+      var mockOctoClient = MockOctopusEnergyCLient();
+      when(mockOctoClient.getAccountDetails(any, any)).thenAnswer(
+          (_) => Future.delayed(Duration(seconds: 10), () => accountDetails));
+      when(mockOctoClient.getConsumptionLast30Days(any, any, any)).thenAnswer(
+          (_) =>
+              Future.delayed(Duration(seconds: 60), () => energyConsumption));
+      when(mockOctoClient.getConsumtion(any, any, any))
+          .thenAnswer((_) => Future.delayed(Duration(seconds: 60), () => []));
+      var mockLocalStore = MockLocalStore();
+      when(mockLocalStore.read(key: argThat(isNotNull, named: 'key')))
+          .thenAnswer((_) => Future.value('test'));
 
-    //   var widget = makeWidgetTestable(
-    //       octoEnergyClient: mockOctoClient,
-    //       store: mockLocalStore,
-    //       httpTimeout: 15);
-    //   await tester.pumpWidget(widget);
-    //   await tester.pumpAndSettle();
+      var widget = makeWidgetTestable(
+          octoEnergyClient: mockOctoClient,
+          store: mockLocalStore,
+          httpTimeout: 15);
+      await tester.pumpWidget(widget);
+      await tester.pumpAndSettle();
 
-    //   await tester.drag(find.byKey(Key('apiKey')), Offset(100, -800));
-    //   await tester.pumpAndSettle();
+      await tester.drag(find.byKey(Key('apiKey')), Offset(100, -800));
+      await tester.pumpAndSettle();
 
-    //   await tester.enterText(find.byKey(Key('apiKey')), 'testKey');
-    //   await tester.pumpAndSettle();
-    //   await tester.enterText(find.byKey(Key('accountId')), 'testAccount');
-    //   await tester.pumpAndSettle();
-    //   await tester.drag(find.byKey(Key('apiKey')), Offset(100, -300));
+      await tester.enterText(find.byKey(Key('apiKey')), 'testKey');
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(Key('accountId')), 'testAccount');
+      await tester.pumpAndSettle();
+      await tester.drag(find.byKey(Key('apiKey')), Offset(100, -300));
 
-    //   await tester.tap(find.text('Go'));
-    //   await tester.pump(Duration(seconds: 5));
+      await tester.tap(find.text('Go'));
+      await tester.pump(Duration(seconds: 5));
 
-    //   expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
-    //   await tester.pumpAndSettle();
+      await tester.pumpAndSettle();
 
-    //   await tester.drag(find.text('Squiddy'), Offset(100, -800));
-    //   await tester.pumpAndSettle();
+      await tester.drag(find.text('Squiddy'), Offset(100, -800));
+      await tester.pumpAndSettle();
 
-    //   await tester.tap(find.text('Test'));
-    //   // await tester.pump(Duration(seconds: 5));
-    //   // await tester.pump(Duration(seconds: 30));
-    //   await tester.pumpAndSettle();
+      await tester.tap(find.text('Test'));
+      // await tester.pump(Duration(seconds: 5));
+      // await tester.pump(Duration(seconds: 30));
+      await tester.pumpAndSettle();
 
-    //   expect(find.text('Confirm'), findsOneWidget);
+      expect(find.text('Confirm'), findsOneWidget);
 
-    //   await tester.tap(find.text('Yes'));
-    //   await tester.pumpAndSettle();
+      await tester.tap(find.text('Yes'));
+      await tester.pumpAndSettle();
 
-    //   verify(mockLocalStore.write(
-    //           key: argThat(isNotNull, named: 'key'),
-    //           value: argThat(isNotNull, named: 'value')))
-    //       .called(4);
-    // });
+      verify(mockLocalStore.write(
+              key: argThat(isNotNull, named: 'key'),
+              value: argThat(isNotNull, named: 'value')))
+          .called(7);
+    });
   });
 }
