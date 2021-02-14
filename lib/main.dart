@@ -169,9 +169,17 @@ class _MyAppState extends State<MyApp> {
               ),
               Center(
                   child: Text(
-                      "uh oh, taking readings was taking an unexpectedly long time.")),
+                "Getting readings taking a long time.",
+                softWrap: true,
+              )),
               Text(
-                  'If the problem continues, try loging out and logging back in'),
+                'If the problem continues',
+                softWrap: true,
+              ),
+              Text(
+                'Try loging out and logging back in',
+                softWrap: true,
+              ),
               Padding(
                 padding: const EdgeInsets.all(20.0),
                 child: RaisedButton(
