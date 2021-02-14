@@ -8,14 +8,38 @@ import 'package:squiddy/octopus/octopusEnergyClient.dart';
 import 'package:squiddy/octopus/settingsManager.dart';
 import 'package:squiddy/widgets/agilePriceCard.dart';
 
-class AgilePriceList extends StatelessWidget {
+class AgilePriceList extends StatefulWidget {
+  @override
+  _AgilePriceListState createState() => _AgilePriceListState();
+}
+
+class _AgilePriceListState extends State<AgilePriceList> {
   final timeFormat = DateFormat('HH:mm');
 
+  Future<List<AgilePrice>> _agilePriceFuture;
+
   @override
-  Widget build(BuildContext context) {
+  initSate() {
     var octoManager = Provider.of<OctopusManager>(context);
     var settingsManager = Provider.of<SettingsManager>(context);
 
+    _agilePriceFuture = octoManager.getAgilePrices(
+        tariffCode: settingsManager.activeAgileTariff, onlyAfterDateTime: true);
+    super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    var octoManager = Provider.of<OctopusManager>(context);
+    var settingsManager = Provider.of<SettingsManager>(context);
+
+    _agilePriceFuture = octoManager.getAgilePrices(
+        tariffCode: settingsManager.activeAgileTariff, onlyAfterDateTime: true);
+    super.didChangeDependencies();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       children: [
         Padding(
@@ -40,9 +64,7 @@ class AgilePriceList extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.fromLTRB(10, 5, 10, 10),
           child: FutureBuilder<List<AgilePrice>>(
-              future: octoManager.getAgilePrices(
-                  tariffCode: settingsManager.activeAgileTariff,
-                  onlyAfterDateTime: true),
+              future: _agilePriceFuture,
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
                   return Shimmer.fromColors(

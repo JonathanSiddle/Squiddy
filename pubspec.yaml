@@ -42,6 +42,7 @@ dev_dependencies:
     sdk: flutter
   mockito: ^4.0.0
   flutter_launcher_icons: ^0.7.4
+  fake_async: ^1.1.0
 #to update icons use:
 #flutter pub get
 #flutter pub run flutter_launcher_icons:main
