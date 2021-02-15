@@ -18,15 +18,15 @@ class _AgilePriceListState extends State<AgilePriceList> {
 
   Future<List<AgilePrice>> _agilePriceFuture;
 
-  @override
-  initSate() {
-    var octoManager = Provider.of<OctopusManager>(context);
-    var settingsManager = Provider.of<SettingsManager>(context);
+  // @override
+  // initSate() {
+  //   var octoManager = Provider.of<OctopusManager>(context);
+  //   var settingsManager = Provider.of<SettingsManager>(context);
 
-    _agilePriceFuture = octoManager.getAgilePrices(
-        tariffCode: settingsManager.activeAgileTariff, onlyAfterDateTime: true);
-    super.initState();
-  }
+  //   _agilePriceFuture = octoManager.getAgilePrices(
+  //       tariffCode: settingsManager.activeAgileTariff, onlyAfterDateTime: true);
+  //   super.initState();
+  // }
 
   @override
   void didChangeDependencies() {

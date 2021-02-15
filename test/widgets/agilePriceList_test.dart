@@ -18,6 +18,7 @@ main() {
       @required FlutterSecureStorage store}) async {
     var octoManager = OctopusManager(octopusEnergyClient: octoEnergyClient);
     var settingsManager = SettingsManager(localStore: store);
+    settingsManager.activeAgileTariff = 'testTariff';
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(title: Text('test')),
@@ -50,16 +51,19 @@ main() {
       ];
       var ec = MockOctopusEnergyCLient();
       when(ec.getCurrentAgilePrices(tariffCode: anyNamed('tariffCode')))
-          .thenAnswer((_) async => agilePrices);
+          .thenAnswer((_) => Future.value(agilePrices));
       var ls = MockLocalStore();
       var widget = await makeWidgetTestable(octoEnergyClient: ec, store: ls);
       await tester.pumpWidget(widget);
+
+      expect(find.byType(AgilePriceCard), findsNWidgets(4));
 
       //check loading is displayed
       await tester.pumpWidget(widget);
 
       expect(find.byType(AgilePriceCard), findsNWidgets(2));
-      expect(true, true);
+      expect(find.text('09:00'), findsOneWidget);
+      expect(find.text('09:30'), findsOneWidget);
     });
   });
 }
