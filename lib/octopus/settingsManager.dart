@@ -130,7 +130,8 @@ class SettingsManager extends ChangeNotifier {
   }
 
   Future<bool> saveSelectedAgileRegion(String tariff) async {
-    await _localStore.write(key: SELECTED_AGILE_REGION_KEY, value: tariff);
+    await _localStore.write(
+        key: SELECTED_AGILE_REGION_KEY, value: _selectedAgileRegion);
     return true;
   }
 

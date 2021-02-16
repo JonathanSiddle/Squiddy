@@ -264,8 +264,6 @@ class _BootStrapPageState extends State<BootStrap> {
                                               account.getAgileTariffCode();
                                           settingsManager.showAgilePrices =
                                               true;
-                                          settingsManager.selectedAgileRegion =
-                                              account.getAgileTariffCode();
                                         } else {
                                           settingsManager.activeAgileTariff =
                                               '';

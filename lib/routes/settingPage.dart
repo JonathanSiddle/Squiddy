@@ -27,12 +27,7 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     var settingsManager = Provider.of<SettingsManager>(context);
-    if (settingsManager.selectedAgileRegion != null &&
-        settingsManager.selectedAgileRegion != '') {
-      selectedValue = settingsManager.selectedAgileRegion;
-    } else {
-      selectedValue = 'AT';
-    }
+    selectedValue = settingsManager.selectedAgileRegion;
     showAgilePrices = settingsManager.showAgilePrices ?? false;
 
     var agileRegions = {

@@ -22,6 +22,8 @@ void main() async {
     settingsManager.validated = true;
   }
 
+  await settingsManager.saveAgileInformation();
+
   var bootstrap = MultiProvider(
     providers: [
       ChangeNotifierProvider<SettingsManager>(create: (_) => settingsManager),
@@ -77,6 +79,7 @@ class _MyAppState extends State<MyApp> {
                 if (ea.hasActiveAgileAccount()) {
                   settings.showAgilePrices = true;
                   settings.activeAgileTariff = ea.getAgileTariffCode();
+                  settings.selectedAgileRegion = 'AT';
                 }
               } else if (settings.showAgilePrices) {
                 if (settings.selectedAgileRegion != null &&
@@ -87,6 +90,7 @@ class _MyAppState extends State<MyApp> {
                 } else if (ea.hasActiveAgileAccount()) {
                   settings.showAgilePrices = true;
                   settings.activeAgileTariff = ea.getAgileTariffCode();
+                  settings.selectedAgileRegion = 'AT';
                 }
               } else {
                 settings.activeAgileTariff = '';

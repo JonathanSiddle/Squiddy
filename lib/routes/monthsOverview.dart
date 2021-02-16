@@ -64,6 +64,7 @@ class _MonthsOverviewState extends State<MonthsOverview> {
               } else if (ea.hasActiveAgileAccount()) {
                 settings.showAgilePrices = true;
                 settings.activeAgileTariff = ea.getAgileTariffCode();
+                settings.selectedAgileRegion = 'AT';
               }
             } else {
               settings.activeAgileTariff = '';
