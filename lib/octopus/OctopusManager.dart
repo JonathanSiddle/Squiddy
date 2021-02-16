@@ -105,14 +105,18 @@ class OctopusManager extends ChangeNotifier {
       {@required String tariffCode, @required bool onlyAfterDateTime}) async {
     List<AgilePrice> prices;
 
-    if (tariffCode != null) {
+    if (tariffCode == null) return Future.error('Error - No tariffCode');
+
+    try {
       prices = await octopusEnergyClient.getCurrentAgilePrices(
           tariffCode: tariffCode);
+    } catch (_) {
+      return Future.error('Error getting tariff data');
+    }
 
-      if (prices != null && onlyAfterDateTime) {
-        prices.removeWhere((p) => p.validTo.isBefore(dateTimeFetcher()));
-        prices.sort((a, b) => a.validFrom.compareTo(b.validFrom));
-      }
+    if (prices != null && onlyAfterDateTime) {
+      prices.removeWhere((p) => p.validTo.isBefore(dateTimeFetcher()));
+      prices.sort((a, b) => a.validFrom.compareTo(b.validFrom));
     }
 
     return prices;

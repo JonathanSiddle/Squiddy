@@ -66,7 +66,11 @@ class _AgilePriceListState extends State<AgilePriceList> {
           child: FutureBuilder<List<AgilePrice>>(
               future: _agilePriceFuture,
               builder: (context, snapshot) {
-                if (!snapshot.hasData) {
+                if (snapshot.hasError) {
+                  return Container(
+                    child: Text('Uh oh, could not get Agile prices'),
+                  );
+                } else if (!snapshot.hasData) {
                   return Shimmer.fromColors(
                     baseColor: Colors.black12,
                     highlightColor: Colors.white,
@@ -81,10 +85,6 @@ class _AgilePriceListState extends State<AgilePriceList> {
                         ],
                       ),
                     ),
-                  );
-                } else if (snapshot.hasError) {
-                  return Container(
-                    child: Text('Uh oh, could not get Agile prices'),
                   );
                 }
 

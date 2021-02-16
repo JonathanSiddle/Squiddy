@@ -35,7 +35,7 @@ main() {
   }
 
   group('Get data back from agile prices', () {
-    testWidgets('Can display list, got readings back',
+    testWidgets('Shows loading then displays cards when gets readings back',
         (WidgetTester tester) async {
       var agilePrices = [
         AgilePrice(
@@ -64,6 +64,22 @@ main() {
       expect(find.byType(AgilePriceCard), findsNWidgets(2));
       expect(find.text('09:00'), findsOneWidget);
       expect(find.text('09:30'), findsOneWidget);
+    });
+
+    testWidgets('Show error if fails to get data', (WidgetTester tester) async {
+      var ec = MockOctopusEnergyCLient();
+      when(ec.getCurrentAgilePrices(tariffCode: anyNamed('tariffCode')))
+          .thenAnswer((_) => Future.error('Error getting data'));
+      var ls = MockLocalStore();
+      var widget = await makeWidgetTestable(octoEnergyClient: ec, store: ls);
+      await tester.pumpWidget(widget);
+
+      expect(find.byType(AgilePriceCard), findsNWidgets(4));
+
+      //check loading is displayed
+      await tester.pumpWidget(widget);
+
+      expect(find.text('Uh oh, could not get Agile prices'), findsOneWidget);
     });
   });
 }
