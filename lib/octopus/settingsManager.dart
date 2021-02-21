@@ -30,23 +30,25 @@ class SettingsManager extends ChangeNotifier {
 
   ThemeBrightness get themeBrightness => _themeBrightness;
 
+  // ignore: unnecessary_getters_setters
   bool get showAgilePrices => _showAgilePrices;
+  // ignore: unnecessary_getters_setters
   set showAgilePrices(bool b) {
     _showAgilePrices = b;
-
-    // notifyListeners();
   }
 
+  // ignore: unnecessary_getters_setters
   String get activeAgileTariff => _activeAgileTariff;
+  // ignore: unnecessary_getters_setters
   set activeAgileTariff(String s) {
     _activeAgileTariff = s;
-    // notifyListeners();
   }
 
+  // ignore: unnecessary_getters_setters
   String get selectedAgileRegion => _selectedAgileRegion;
+  // ignore: unnecessary_getters_setters
   set selectedAgileRegion(String s) {
     _selectedAgileRegion = s;
-    // notifyListeners();
   }
 
   saveAgileInformation() {

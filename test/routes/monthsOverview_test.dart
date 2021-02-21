@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:mockito/mockito.dart';
 import 'package:provider/provider.dart';
 import 'package:squiddy/Charts/overviewSummary.dart';
 import 'package:squiddy/monthDisplayCard.dart';
@@ -9,20 +10,29 @@ import 'package:squiddy/octopus/OctopusManager.dart';
 import 'package:squiddy/octopus/octopusEnergyClient.dart';
 import 'package:squiddy/octopus/settingsManager.dart';
 import 'package:squiddy/routes/monthsOverview.dart';
+import 'package:squiddy/widgets/agilePriceCard.dart';
 import 'mocks.dart';
 
 void main() {
-  Widget makeWidgetTestable({List<EnergyMonth> testData}) {
-    var settingManager = SettingsManager(localStore: MockLocalStore());
-    settingManager.showAgilePrices = false;
-    settingManager.selectedAgileRegion = '';
-    settingManager.activeAgileTariff = '';
-    var octoManager =
-        OctopusManager(octopusEnergyClient: MockOctopusEnergyCLient());
+  Widget makeWidgetTestable(
+      {List<EnergyMonth> testData,
+      SettingsManager settingsManager,
+      MockOctopusEnergyCLient oClient}) {
+    SettingsManager sm;
+    if (settingsManager == null) {
+      sm = SettingsManager(localStore: MockLocalStore());
+      sm.showAgilePrices = false;
+      sm.selectedAgileRegion = null;
+      sm.activeAgileTariff = null;
+    } else {
+      sm = settingsManager;
+    }
+    var octoManager = OctopusManager(
+        octopusEnergyClient: oClient ?? MockOctopusEnergyCLient());
 
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider<SettingsManager>(create: (_) => settingManager),
+        ChangeNotifierProvider<SettingsManager>(create: (_) => sm),
         ChangeNotifierProvider<OctopusManager>(create: (_) => octoManager),
         Provider<List<EnergyMonth>>(
           create: (_) => testData,
@@ -40,7 +50,8 @@ void main() {
   }
 
   group('Months overview tests', () {
-    testWidgets('Can display one day for one month',
+    testWidgets(
+        'Can display one day for one month - does not display agile data when settings are null',
         (WidgetTester tester) async {
       // var twoDayData = TestData.getTwoDayData();
       // var energyMonths = OctopusEnery.getEnergyMonthsFromJsonString(twoDayData);
@@ -93,12 +104,97 @@ void main() {
       expect(find.text('Last Six Months'), findsOneWidget);
       expect(find.text('6.00kWh'), findsOneWidget);
       expect(find.byType(OverviewSummary), findsOneWidget);
+      expect(find.byType(AgilePriceCard), findsNothing);
 
       //have to scroll a little bit to make sure sqiddyCard is found
       await tester.drag(find.text('Last Six Months'), Offset(100, -300));
       await tester.pumpAndSettle();
       // // await tester.pump();
       expect(find.byType(SquiddyCard), findsOneWidget);
+      expect(find.widgetWithText(Container, 'Jan 1990'), findsOneWidget);
+    });
+
+    testWidgets('Can display one day for one month - Will show agile prices',
+        (WidgetTester tester) async {
+      var df = DateFormat('yyyy-MM-dd HH:mm:ss');
+      var day1Consumption = Map<String, EnergyConsumption>();
+      day1Consumption['10:00'] = EnergyConsumption(
+          intervalStart: df.parse('1990-01-01 10:00:00'),
+          intervalEnd: df.parse('1990-01-01 10:00:30'),
+          consumption: 3);
+      day1Consumption['10:01'] = EnergyConsumption(
+          intervalStart: df.parse('1990-01-01 10:00:30'),
+          intervalEnd: df.parse('1990-01-01 10:01:00'),
+          consumption: 3);
+      var day2Consumption = Map<String, EnergyConsumption>();
+      day2Consumption['10:00'] = EnergyConsumption(
+          intervalStart: df.parse('1990-01-02 10:00:00'),
+          intervalEnd: df.parse('1990-01-02 10:00:30'),
+          consumption: 3);
+      day2Consumption['10:01'] = EnergyConsumption(
+          intervalStart: df.parse('1990-01-02 10:00:30'),
+          intervalEnd: df.parse('1990-01-02 10:01:00'),
+          consumption: 3);
+      var day3Consumption = Map<String, EnergyConsumption>();
+      day3Consumption['10:00'] = EnergyConsumption(
+          intervalStart: df.parse('1990-01-03 10:00:00'),
+          intervalEnd: df.parse('1990-01-03 10:00:30'),
+          consumption: 3);
+      day3Consumption['10:01'] = EnergyConsumption(
+          intervalStart: df.parse('1990-01-03 10:00:30'),
+          intervalEnd: df.parse('1990-01-03 10:01:00'),
+          consumption: 3);
+
+      var energyMonths = List<EnergyMonth>.from([
+        EnergyMonth(
+            begin: df.parse('1990-01-01 00:00:00'),
+            end: df.parse('1990-01-03 23:59:30'),
+            days: List<EnergyDay>.from([
+              EnergyDay(
+                  date: df.parse('1990-01-01 00:00:00'),
+                  consumption: day1Consumption),
+            ])),
+      ]);
+      var agilePrices = [
+        AgilePrice(
+            validFrom: DateTime(2990, 1, 1, 9, 0),
+            validTo: DateTime(2990, 1, 1, 9, 30),
+            valueExcVat: 10.0,
+            valueIncVat: 11),
+        AgilePrice(
+            validFrom: DateTime(2990, 1, 1, 9, 30),
+            validTo: DateTime(2990, 1, 1, 10, 0),
+            valueExcVat: 10.0,
+            valueIncVat: 11),
+      ];
+      var ec = MockOctopusEnergyCLient();
+      when(ec.getCurrentAgilePrices(tariffCode: anyNamed('tariffCode')))
+          .thenAnswer((_) => Future.value(agilePrices));
+      var settingsManager = SettingsManager(localStore: MockLocalStore());
+      settingsManager.showAgilePrices = true;
+      settingsManager.activeAgileTariff = 'testTariff';
+      settingsManager.selectedAgileRegion = 'AT';
+      var widget = makeWidgetTestable(
+          testData: energyMonths,
+          settingsManager: settingsManager,
+          oClient: ec);
+      await tester.pumpWidget(widget);
+      await tester.pumpWidget(widget);
+
+      await tester.pumpAndSettle();
+
+      expect(find.text('Overview'), findsOneWidget);
+      expect(find.byIcon(FontAwesomeIcons.cog), findsOneWidget);
+      expect(find.text('Last Six Months'), findsOneWidget);
+      expect(find.text('6.00kWh'), findsOneWidget);
+      expect(find.byType(OverviewSummary), findsOneWidget);
+      expect(find.byType(AgilePriceCard), findsNWidgets(2));
+
+      //have to scroll a little bit to make sure sqiddyCard is found
+      await tester.drag(find.text('Overview'), Offset(100, -400));
+      await tester.pumpAndSettle();
+      // // await tester.pump();
+      expect(find.byType(SquiddyCard), findsNWidgets(1));
       expect(find.widgetWithText(Container, 'Jan 1990'), findsOneWidget);
     });
 

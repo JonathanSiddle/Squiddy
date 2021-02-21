@@ -4,7 +4,6 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
-import 'package:shimmer/shimmer.dart';
 import 'package:squiddy/Charts/overviewSummary.dart';
 import 'package:squiddy/Theme/SquiddyTheme.dart';
 import 'package:squiddy/Util/SlideRoute.dart';
@@ -13,7 +12,6 @@ import 'package:squiddy/octopus/octopusEnergyClient.dart';
 import 'package:squiddy/octopus/settingsManager.dart';
 import 'package:squiddy/routes/monthDaysPage.dart';
 import 'package:squiddy/routes/settingPage.dart';
-import 'package:squiddy/widgets/agilePriceCard.dart';
 import 'package:squiddy/widgets/agilePriceList.dart';
 
 import '../monthDisplayCard.dart';
