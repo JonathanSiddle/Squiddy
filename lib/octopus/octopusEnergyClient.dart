@@ -339,13 +339,15 @@ class EnergyAccount {
     } else {
       cTime = inDateTimeFetcher();
     }
+    if (electricityMeterPoints == null) return false;
 
-    electricityMeterPoints.retainWhere((element) => element.agreements != null);
+    // electricityMeterPoints.retainWhere((element) => element.agreements != null);
+    var agileMeters = electricityMeterPoints
+        .where((element) => element.agreements != null)
+        .toList();
 
-    var agreements = electricityMeterPoints
-        ?.map((e) => e?.agreements)
-        ?.expand((el) => el)
-        ?.toList();
+    var agreements =
+        agileMeters?.map((e) => e?.agreements)?.expand((el) => el)?.toList();
 
     return agreements.any(
         (a) => (a.validTo.isAfter(cTime) && a.tariffCode.contains('AGILE')));
@@ -359,13 +361,16 @@ class EnergyAccount {
     } else {
       cTime = inDateTimeFetcher();
     }
+
+    if (electricityMeterPoints == null) return null;
+
     var agreements = electricityMeterPoints
         ?.map((e) => e.agreements)
         ?.expand((el) => el)
         ?.toList();
 
     return agreements
-        .firstWhere(
+        ?.firstWhere(
             (a) => (a.validTo.isAfter(cTime) && a.tariffCode.contains('AGILE')),
             orElse: null)
         ?.tariffCode;
@@ -379,7 +384,7 @@ class ElectricityMeterPoint {
   List<ElectricityMeter> meters;
   List<ElectricityAgreement> agreements;
 
-  ElectricityMeterPoint({this.mpan, this.meters});
+  ElectricityMeterPoint({this.mpan, this.meters, this.agreements});
 
   ElectricityMeterPoint.fromJson(Map<String, dynamic> json) {
     mpan = json['mpan'];
@@ -425,6 +430,8 @@ class ElectricityAgreement {
   String tariffCode;
   DateTime validFrom;
   DateTime validTo;
+
+  ElectricityAgreement({this.tariffCode, this.validFrom, this.validTo});
 
   ElectricityAgreement.fromJson(Map<String, dynamic> json) {
     tariffCode = json['tariff_code'];
