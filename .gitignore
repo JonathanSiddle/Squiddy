@@ -1,3 +1,6 @@
+#additional
+lib/.env.dart
+
 #Local dev files 
 .fvm
 .vscode

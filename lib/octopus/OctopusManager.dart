@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/widgets.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:squiddy/octopus/octopusEnergyClient.dart';
 
 class OctopusManager extends ChangeNotifier {
@@ -9,6 +10,8 @@ class OctopusManager extends ChangeNotifier {
   var errorGettingData = false;
   var timeoutError = false;
   DateTime Function() dateTimeFetcher = () => DateTime.now();
+  bool logErrors = false;
+  SquiddyLogger logger;
 
   String apiKey;
   OctopusEneryClient octopusEnergyClient;
@@ -18,7 +21,9 @@ class OctopusManager extends ChangeNotifier {
   OctopusManager(
       {this.octopusEnergyClient,
       this.timeoutDuration,
-      DateTime Function() inDateTimeFetcher}) {
+      DateTime Function() inDateTimeFetcher,
+      this.logErrors = false,
+      this.logger}) {
     if (octopusEnergyClient == null) {
       octopusEnergyClient = OctopusEneryClient();
     }
@@ -29,6 +34,10 @@ class OctopusManager extends ChangeNotifier {
 
     if (inDateTimeFetcher != null) {
       this.dateTimeFetcher = inDateTimeFetcher;
+    }
+
+    if (logErrors && logger == null) {
+      logger = DefaultLogger();
     }
   }
 
@@ -48,7 +57,9 @@ class OctopusManager extends ChangeNotifier {
       if (updateAccountSettings != null) {
         updateAccountSettings(account);
       }
-    } catch (_) {}
+    } catch (exception, stackTrace) {
+      logger.logError(exception, stackTrace);
+    }
 
     try {
       print('Initing data');
@@ -57,8 +68,11 @@ class OctopusManager extends ChangeNotifier {
           .timeout(Duration(seconds: timeoutDuration));
     } on TimeoutException catch (_) {
       timeoutError = true;
-    } catch (_) {
-      print('Uh error getting data');
+    } catch (exception, stackTrace) {
+      Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
     }
 
     if (monthConsumption == null || monthConsumption.length == 0) {
@@ -76,14 +90,28 @@ class OctopusManager extends ChangeNotifier {
 
   Future<EnergyAccount> getAccountDetails(
       String accountId, String apiKey) async {
-    return await octopusEnergyClient.getAccountDetails(accountId, apiKey);
+    try {
+      var result =
+          await octopusEnergyClient.getAccountDetails(accountId, apiKey);
+      return result;
+    } catch (exception, stackTrace) {
+      logger.logError(exception, stackTrace);
+    }
+    return null;
   }
 
   Future<List<EnergyConsumption>> getConsumptionLast30Days(
       String apiKey, String meterPoint, String meter) async {
-    return await octopusEnergyClient
-        .getConsumptionLast30Days(apiKey, meterPoint, meter)
-        .timeout(Duration(seconds: timeoutDuration));
+    try {
+      var result = await octopusEnergyClient
+          .getConsumptionLast30Days(apiKey, meterPoint, meter)
+          .timeout(Duration(seconds: timeoutDuration));
+      return result;
+    } catch (exception, stackTrace) {
+      logger.logError(exception, stackTrace);
+    }
+
+    return List();
   }
 
   retryLogin() {
@@ -120,5 +148,25 @@ class OctopusManager extends ChangeNotifier {
     }
 
     return prices;
+  }
+}
+
+abstract class SquiddyLogger {
+  Future<bool> logError(exception, stackTrace);
+}
+
+class DefaultLogger implements SquiddyLogger {
+  @override
+  Future<bool> logError(exception, stackTrace) async {
+    var result = await Sentry.captureException(
+      exception,
+      stackTrace: stackTrace,
+    );
+
+    if (result != null) {
+      return true;
+    } else {
+      return false;
+    }
   }
 }

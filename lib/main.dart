@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show SystemUiOverlayStyle, rootBundle;
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:squiddy/Theme/SquiddyTheme.dart';
 import 'package:squiddy/octopus/OctopusManager.dart';
 import 'package:squiddy/octopus/octopusEnergyClient.dart';
@@ -10,12 +11,15 @@ import 'package:squiddy/octopus/settingsManager.dart';
 import 'package:squiddy/routes/bootstrap.dart';
 import 'package:squiddy/routes/monthsOverview.dart';
 
+import '.env.dart';
 import 'octopus/octopusEnergyClient.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  var sentryURL = environment['sentryURL'];
+
   var settingsManager = SettingsManager();
-  var octoManager = OctopusManager();
+  var octoManager = OctopusManager(logErrors: true);
   await settingsManager.loadSettings();
   if (settingsManager.accountDetailsSet) {
     //if previously save details, assume they have been validated
@@ -32,7 +36,9 @@ void main() async {
     child: MyApp(),
   );
 
-  runApp(bootstrap);
+  await SentryFlutter.init((options) {
+    options.dsn = sentryURL;
+  }, appRunner: () => runApp(bootstrap));
 }
 
 /// Assumes the given path is a text-file-asset.
