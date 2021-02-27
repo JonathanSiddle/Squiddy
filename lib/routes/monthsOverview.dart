@@ -12,6 +12,7 @@ import 'package:squiddy/octopus/octopusEnergyClient.dart';
 import 'package:squiddy/octopus/settingsManager.dart';
 import 'package:squiddy/routes/monthDaysPage.dart';
 import 'package:squiddy/routes/settingPage.dart';
+import 'package:squiddy/widgets/agilePriceList.dart';
 
 import '../monthDisplayCard.dart';
 
@@ -28,6 +29,7 @@ class _MonthsOverviewState extends State<MonthsOverview> {
   SettingsManager settings;
   OctopusManager octoManager;
   final urlDate = DateFormat('yyyy/MM');
+  final timeFormat = DateFormat('HH:mm');
 
   @override
   void didChangeDependencies() {
@@ -38,15 +40,36 @@ class _MonthsOverviewState extends State<MonthsOverview> {
   }
 
   void _onRefresh() async {
+    await refreshData();
+
+    _refreshController.refreshCompleted();
+  }
+
+  refreshData() async {
     if (octoManager != null && settings != null) {
       await octoManager.initData(
           apiKey: settings.apiKey,
           accountId: settings.accountId,
           meterPoint: settings.meterPoint,
-          meter: settings.meter);
+          meter: settings.meter,
+          updateAccountSettings: (EnergyAccount ea) {
+            if (settings.showAgilePrices) {
+              if (settings.selectedAgileRegion != null &&
+                  settings.selectedAgileRegion != '' &&
+                  settings.selectedAgileRegion != 'AT') {
+                settings.activeAgileTariff =
+                    'E-1R-AGILE-18-02-21${settings.selectedAgileRegion}';
+              } else if (ea.hasActiveAgileAccount()) {
+                settings.showAgilePrices = true;
+                settings.activeAgileTariff = ea.getAgileTariffCode();
+                settings.selectedAgileRegion = 'AT';
+              }
+            } else {
+              settings.activeAgileTariff = '';
+              settings.selectedAgileRegion = '';
+            }
+          });
     }
-
-    _refreshController.refreshCompleted();
   }
 
   void _onLoading() async {
@@ -76,92 +99,188 @@ class _MonthsOverviewState extends State<MonthsOverview> {
 
     return months == null && !octoManager.errorGettingData
         ? Center(child: CircularProgressIndicator())
-        : months.length == 0 || octoManager.errorGettingData
+        : months.length == 0 && octoManager.timeoutError
             ? Column(
-              children: [
-                Text("Uh oh, doesn't look like you have any readings")
-              ],
-            )
-            : SafeArea(
-                child: SmartRefresher(
-                  enablePullDown: true,
-                  controller: _refreshController,
-                  onRefresh: _onRefresh,
-                  onLoading: _onLoading,
-                  child: CustomScrollView(
-                    slivers: <Widget>[
-                      SliverList(
-                        delegate: SliverChildListDelegate([
-                          Column(
-                            children: <Widget>[
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Row(
-                                  children: <Widget>[
-                                    Text(
-                                      'Overview',
-                                      style: TextStyle(fontSize: 48),
-                                    ),
-                                    Expanded(child: Container()),
-                                    IconButton(
-                                        icon: Icon(
-                                          FontAwesomeIcons.cog,
-                                          size: 36,
-                                        ),
-                                        onPressed: () {
-                                          Navigator.push(
-                                              context,
-                                              SlideTopRoute(
-                                                  page: SettingsPage(),
-                                                  name: 'settings'));
-                                        }),
-                                  ],
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(10.0),
-                                child: OverviewSummary(),
-                              ),
-                            ],
-                          ),
-                        ]),
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Icon(
+                      FontAwesomeIcons.sadTear,
+                      size: 55,
+                      color: SquiddyTheme.squiddyPrimary,
+                    ),
+                  ),
+                  Center(
+                      child: Text(
+                    "uh oh, taking readings was taking an unexpectedly long time.",
+                    softWrap: true,
+                  )),
+                  Text(
+                    'If the problem continues, try loging out and logging back in',
+                    softWrap: true,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: RaisedButton(
+                        child: Text(
+                          'Retry',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        color: SquiddyTheme.squiddySecondary,
+                        onPressed: () async {
+                          setState(() {
+                            octoManager.retryLogin();
+                          });
+                        }),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: RaisedButton(
+                        child: Text(
+                          'Logout',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        color: Colors.red,
+                        onPressed: () async {
+                          await settings.cleanSettings();
+                        }),
+                  )
+                ],
+              )
+            : months.length == 0 || octoManager.errorGettingData
+                ? Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Center(
+                          child: Text(
+                              "Uh oh, doesn't look like you have any readings")),
+                      Text(''),
+                      Text(
+                        "If you think you should have readings ",
                       ),
-                      SliverList(
-                        delegate: SliverChildBuilderDelegate((context, index) {
-                          var cMonth = months[index];
-                          var displayFormat = DateFormat.yMMM();
-
-                          var urlMonth = urlDate.format(cMonth.begin);
-                          var monthDays = cMonth.days;
-
-                          Map<String, num> data = {};
-                          monthDays.forEach((d) =>
-                              data[d.date.day.toString()] = d.totalConsumption);
-                          return SquiddyCard(
-                            graphData: data,
-                            onTap: () {
-                              Navigator.push(
-                                  context,
-                                  SlideLeftRoute(
-                                      name: '/monthDays/$urlMonth',
-                                      page: Provider(
-                                          create: (_) => cMonth,
-                                          child: MonthDaysPage())));
-                            },
-                            color: cardColors[index],
-                            inkColor:
-                                cardColors[index] == SquiddyTheme.squiddyPrimary
-                                    ? SquiddyTheme.squiddyPrimary[300]
-                                    : SquiddyTheme.squiddySecondary[300],
-                            title: displayFormat.format(cMonth.begin),
-                            total:
-                                '${cMonth.totalConsumption.toStringAsFixed(2)}kWh',
-                          );
-                        }, childCount: months.length),
+                      Text('try logging out and logging back in'),
+                      Padding(
+                        padding: const EdgeInsets.all(20.0),
+                        child: RaisedButton(
+                            child: Text(
+                              'Logout',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            color: Colors.red,
+                            onPressed: () async {
+                              await settings.cleanSettings();
+                            }),
                       )
                     ],
-                  ),
-                ),
-              );
+                  )
+                /**********************
+                 *Main area section if all goes well...
+                ***********************/
+                : SafeArea(
+                    child: SmartRefresher(
+                      enablePullDown: true,
+                      controller: _refreshController,
+                      onRefresh: _onRefresh,
+                      onLoading: _onLoading,
+                      child: CustomScrollView(
+                        slivers: <Widget>[
+                          SliverList(
+                            delegate: SliverChildListDelegate([
+                              Column(
+                                children: <Widget>[
+                                  Padding(
+                                    padding: const EdgeInsets.fromLTRB(
+                                        10, 10, 10, 5),
+                                    child: Row(
+                                      children: <Widget>[
+                                        Text(
+                                          'Overview',
+                                          style: TextStyle(fontSize: 48),
+                                        ),
+                                        Expanded(child: Container()),
+                                        IconButton(
+                                            icon: Icon(
+                                              FontAwesomeIcons.cog,
+                                              size: 36,
+                                            ),
+                                            onPressed: () {
+                                              Navigator.push(
+                                                  context,
+                                                  SlideTopRoute(
+                                                      page: SettingsPage(),
+                                                      name: 'settings'));
+                                            }),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ]),
+                          ),
+                          /********************
+                           * Agile price section
+                           *******************/
+                          //What will become the new agile price section
+                          settings.showAgilePrices
+                              ? SliverToBoxAdapter(
+                                  child: AgilePriceList(),
+                                )
+                              : SliverToBoxAdapter(
+                                  child: Container(
+                                    height: 10,
+                                  ),
+                                ),
+                          SliverList(
+                            delegate: SliverChildListDelegate([
+                              Column(
+                                children: <Widget>[
+                                  Padding(
+                                    padding: const EdgeInsets.all(10.0),
+                                    child: OverviewSummary(),
+                                  ),
+                                ],
+                              ),
+                            ]),
+                          ),
+                          SliverList(
+                            delegate:
+                                SliverChildBuilderDelegate((context, index) {
+                              var cMonth = months[index];
+                              var displayFormat = DateFormat.yMMM();
+
+                              var urlMonth = urlDate.format(cMonth.begin);
+                              var monthDays = cMonth.days;
+
+                              Map<String, num> data = {};
+                              monthDays.forEach((d) =>
+                                  data[d.date.day.toString()] =
+                                      d.totalConsumption);
+                              return SquiddyCard(
+                                graphData: data,
+                                onTap: () {
+                                  Navigator.push(
+                                      context,
+                                      SlideLeftRoute(
+                                          name: '/monthDays/$urlMonth',
+                                          page: Provider(
+                                              create: (_) => cMonth,
+                                              child: MonthDaysPage())));
+                                },
+                                color: cardColors[index],
+                                inkColor: cardColors[index] ==
+                                        SquiddyTheme.squiddyPrimary
+                                    ? SquiddyTheme.squiddyPrimary[300]
+                                    : SquiddyTheme.squiddySecondary[300],
+                                title: displayFormat.format(cMonth.begin),
+                                total:
+                                    '${cMonth.totalConsumption.toStringAsFixed(2)}kWh',
+                              );
+                            }, childCount: months.length),
+                          )
+                        ],
+                      ),
+                    ),
+                  );
   }
 }

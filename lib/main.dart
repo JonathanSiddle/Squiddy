@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show SystemUiOverlayStyle, rootBundle;
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:squiddy/Theme/SquiddyTheme.dart';
 import 'package:squiddy/octopus/OctopusManager.dart';
 import 'package:squiddy/octopus/octopusEnergyClient.dart';
@@ -12,10 +13,12 @@ import 'package:squiddy/routes/bootstrap.dart';
 import 'package:squiddy/routes/monthsOverview.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
+import '.env.dart';
 import 'octopus/octopusEnergyClient.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  var sentryURL = environment['sentryURL'];
 
   SettingsManager settingsManager;
   OctopusManager octoManager;
@@ -26,12 +29,14 @@ void main() async {
     settingsManager = SettingsManager();
   }
 
-  octoManager = OctopusManager();
+  octoManager = OctopusManager(logErrors: true);
   await settingsManager.loadSettings();
   if (settingsManager.accountDetailsSet) {
     //if previously save details, assume they have been validated
     settingsManager.validated = true;
   }
+
+  await settingsManager.saveAgileInformation();
 
   var bootstrap = MultiProvider(
     providers: [
@@ -41,7 +46,9 @@ void main() async {
     child: MyApp(),
   );
 
-  runApp(bootstrap);
+  await SentryFlutter.init((options) {
+    options.dsn = sentryURL;
+  }, appRunner: () => runApp(bootstrap));
 }
 
 /// Assumes the given path is a text-file-asset.
@@ -73,14 +80,40 @@ class _MyAppState extends State<MyApp> {
     settings = Provider.of<SettingsManager>(context, listen: true);
     octoManager = Provider.of<OctopusManager>(context);
     if (settings.accountDetailsSet && settings.validated) {
-      if (octoManager != null && !octoManager.initialised) {
+      if (octoManager != null &&
+          !octoManager.initialised &&
+          !octoManager.errorGettingData) {
         print('Initialising octoManager data');
         print('Using meterpoint: ${settings.meterPoint}');
         octoManager.initData(
             apiKey: settings.apiKey,
             accountId: settings.accountId,
             meterPoint: settings.meterPoint,
-            meter: settings.meter);
+            meter: settings.meter,
+            updateAccountSettings: (EnergyAccount ea) {
+              if (settings.showAgilePrices == null) {
+                if (ea.hasActiveAgileAccount()) {
+                  settings.showAgilePrices = true;
+                  settings.activeAgileTariff = ea.getAgileTariffCode();
+                  settings.selectedAgileRegion = 'AT';
+                }
+              } else if (settings.showAgilePrices) {
+                if (settings.selectedAgileRegion != null &&
+                    settings.selectedAgileRegion != '' &&
+                    settings.selectedAgileRegion != 'AT') {
+                  settings.activeAgileTariff =
+                      'E-1R-AGILE-18-02-21${settings.selectedAgileRegion}';
+                } else if (ea.hasActiveAgileAccount()) {
+                  settings.showAgilePrices = true;
+                  settings.activeAgileTariff = ea.getAgileTariffCode();
+                  settings.selectedAgileRegion = 'AT';
+                }
+              } else {
+                settings.activeAgileTariff = '';
+                settings.selectedAgileRegion = '';
+              }
+              settings.saveAgileInformation();
+            });
       }
     }
 
@@ -121,9 +154,12 @@ class _MyAppState extends State<MyApp> {
                                   update: (_, om, __) => om.monthConsumption,
                                   child: MonthsOverview(),
                                 )
-                              : om.errorGettingData
-                                  ? errorView(settingsManager)
-                                  : Center(child: CircularProgressIndicator()),
+                              : om.timeoutError
+                                  ? timeoutErrorView()
+                                  : om.errorGettingData
+                                      ? errorView(settingsManager)
+                                      : Center(
+                                          child: CircularProgressIndicator()),
                         );
                       },
                     )
@@ -133,6 +169,68 @@ class _MyAppState extends State<MyApp> {
             ),
           );
         });
+  }
+
+  Widget timeoutErrorView() {
+    return SafeArea(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Icon(
+                  FontAwesomeIcons.sadTear,
+                  size: 55,
+                  color: SquiddyTheme.squiddyPrimary,
+                ),
+              ),
+              Center(
+                  child: Text(
+                "Getting readings taking a long time.",
+                softWrap: true,
+              )),
+              Text(
+                'If the problem continues',
+                softWrap: true,
+              ),
+              Text(
+                'Try loging out and logging back in',
+                softWrap: true,
+              ),
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: RaisedButton(
+                    child: Text(
+                      'Retry',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    color: SquiddyTheme.squiddySecondary,
+                    onPressed: () async {
+                      setState(() {
+                        octoManager.retryLogin();
+                      });
+                    }),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: RaisedButton(
+                    child: Text(
+                      'Logout',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    color: Colors.red,
+                    onPressed: () async {
+                      await settings.cleanSettings();
+                    }),
+              )
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   Widget errorView(SettingsManager settingsManager) {
@@ -153,7 +251,10 @@ class _MyAppState extends State<MyApp> {
                 ),
               ),
               Text('Uh oh, there is no data here or something went wrong!'),
-              Text('If the problem continues, try logging in again'),
+              Text('If the problem continues try:'),
+              Text(''),
+              Text('- Checking connection'),
+              Text('- Logging in again'),
               Padding(
                 padding: const EdgeInsets.all(20.0),
                 child: RaisedButton(

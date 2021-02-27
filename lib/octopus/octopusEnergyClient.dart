@@ -1,10 +1,15 @@
 import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
 final octopusDateformat = DateFormat('yyyy-MM-ddTHH:mm:ss');
+final DateTime Function() defaultDateTimeFetcher = () => DateTime.now();
 
 class OctopusEneryClient {
+  DateTime Function() dateTimeFetcher = defaultDateTimeFetcher;
   OctopusEneryClient();
 
   Map<String, String> getHeaders(String apiKey) {
@@ -56,7 +61,7 @@ class OctopusEneryClient {
     var months = await getConsumtion(apiKey, meterPoint, meter,
         periodFrom: lastMonth, periodTo: now);
 
-    //potentially could be null, init to empty list if this is the case 
+    //potentially could be null, init to empty list if this is the case
     if (months == null) {
       months = List<EnergyMonth>();
     }
@@ -103,13 +108,32 @@ class OctopusEneryClient {
       return null;
     }
 
-
     var consumption =
         consumptionJson.map((c) => EnergyConsumption.fromJson(c)).toList();
 
     var energyMonths = getEnergyMonthsFromConsumption(consumption);
 
     return energyMonths;
+  }
+
+  Future<List<AgilePrice>> getCurrentAgilePrices(
+      {@required String tariffCode}) async {
+    var agilePrices = List<AgilePrice>();
+
+    http.Response response;
+    try {
+      response = await http.get(
+          'https://api.octopus.energy/v1/products/AGILE-18-02-21/electricity-tariffs/$tariffCode/standard-unit-rates');
+    } catch (e) {
+      return null;
+    }
+
+    if (response != null && response.statusCode == 200) {
+      List<dynamic> json = jsonDecode(response.body)['results'];
+      agilePrices = json.map((ap) => AgilePrice.fromMap(ap)).toList();
+    }
+
+    return agilePrices;
   }
 
   static List<EnergyMonth> getEnergyMonthsFromConsumption(
@@ -268,6 +292,8 @@ class EnergyDay {
 }
 
 class EnergyAccount {
+  DateTime Function() dateTimeFetcher = defaultDateTimeFetcher;
+
   String accountNumber;
   num id;
   DateTime movedInAt;
@@ -305,6 +331,50 @@ class EnergyAccount {
     electricityMeterPoints =
         meterPoints.map((p) => ElectricityMeterPoint.fromJson(p)).toList();
   }
+
+  bool hasActiveAgileAccount({DateTime Function() inDateTimeFetcher}) {
+    DateTime cTime;
+    if (inDateTimeFetcher == null) {
+      cTime = dateTimeFetcher();
+    } else {
+      cTime = inDateTimeFetcher();
+    }
+    if (electricityMeterPoints == null) return false;
+
+    // electricityMeterPoints.retainWhere((element) => element.agreements != null);
+    var agileMeters = electricityMeterPoints
+        .where((element) => element.agreements != null)
+        .toList();
+
+    var agreements =
+        agileMeters?.map((e) => e?.agreements)?.expand((el) => el)?.toList();
+
+    return agreements.any(
+        (a) => (a.validTo.isAfter(cTime) && a.tariffCode.contains('AGILE')));
+  }
+
+  ///This method will return the first active AGLIE tariff code, if available
+  String getAgileTariffCode({DateTime Function() inDateTimeFetcher}) {
+    DateTime cTime;
+    if (inDateTimeFetcher == null) {
+      cTime = dateTimeFetcher();
+    } else {
+      cTime = inDateTimeFetcher();
+    }
+
+    if (electricityMeterPoints == null) return null;
+
+    var agreements = electricityMeterPoints
+        ?.map((e) => e.agreements)
+        ?.expand((el) => el)
+        ?.toList();
+
+    return agreements
+        ?.firstWhere(
+            (a) => (a.validTo.isAfter(cTime) && a.tariffCode.contains('AGILE')),
+            orElse: null)
+        ?.tariffCode;
+  }
 }
 
 class ElectricityMeterPoint {
@@ -314,7 +384,7 @@ class ElectricityMeterPoint {
   List<ElectricityMeter> meters;
   List<ElectricityAgreement> agreements;
 
-  ElectricityMeterPoint({this.mpan, this.meters});
+  ElectricityMeterPoint({this.mpan, this.meters, this.agreements});
 
   ElectricityMeterPoint.fromJson(Map<String, dynamic> json) {
     mpan = json['mpan'];
@@ -357,19 +427,21 @@ class ElectricityRegister {
 }
 
 class ElectricityAgreement {
-  String tarrifCode;
+  String tariffCode;
   DateTime validFrom;
   DateTime validTo;
 
+  ElectricityAgreement({this.tariffCode, this.validFrom, this.validTo});
+
   ElectricityAgreement.fromJson(Map<String, dynamic> json) {
-    tarrifCode = json['tariff_code'];
+    tariffCode = json['tariff_code'];
     try {
       validFrom = octopusDateformat.parse(json['valid_from']);
     } catch (e) {
       validFrom = null;
     }
 
-    try { 
+    try {
       validTo = octopusDateformat.parse(json['valid_to']);
     } catch (e) {
       validTo = null;
@@ -389,5 +461,82 @@ class EnergyConsumption {
     consumption = json['consumption'];
     intervalStart = octopusDateformat.parse(json['interval_start']);
     intervalEnd = octopusDateformat.parse(json['interval_end']);
+  }
+}
+
+class AgilePrice {
+  DateTime validFrom;
+  DateTime validTo;
+  double valueExcVat;
+  double valueIncVat;
+
+  AgilePrice({
+    this.validFrom,
+    this.validTo,
+    this.valueExcVat,
+    this.valueIncVat,
+  });
+
+  AgilePrice copyWith({
+    DateTime validFrom,
+    DateTime validTo,
+    double valueExcVat,
+    double valueIncVat,
+  }) {
+    return AgilePrice(
+      validFrom: validFrom ?? this.validFrom,
+      validTo: validTo ?? this.validTo,
+      valueExcVat: valueExcVat ?? this.valueExcVat,
+      valueIncVat: valueIncVat ?? this.valueIncVat,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'valid_from': validFrom?.millisecondsSinceEpoch,
+      'valid_to': validTo?.millisecondsSinceEpoch,
+      'value_exc_vat': valueExcVat,
+      'value_inc_vat': valueIncVat,
+    };
+  }
+
+  factory AgilePrice.fromMap(Map<String, dynamic> map) {
+    if (map == null) return null;
+
+    return AgilePrice(
+      validFrom: octopusDateformat.parse(map['valid_from']),
+      validTo: octopusDateformat.parse(map['valid_to']),
+      valueExcVat: map['value_exc_vat'],
+      valueIncVat: map['value_inc_vat'],
+    );
+  }
+
+  String toJson() => json.encode(toMap());
+
+  factory AgilePrice.fromJson(String source) =>
+      AgilePrice.fromMap(json.decode(source));
+
+  @override
+  String toString() {
+    return 'AgilePrice(validFrom: $validFrom, validTo: $validTo, valueExcVat: $valueExcVat, valueIncVat: $valueIncVat)';
+  }
+
+  @override
+  bool operator ==(Object o) {
+    if (identical(this, o)) return true;
+
+    return o is AgilePrice &&
+        o.validFrom == validFrom &&
+        o.validTo == validTo &&
+        o.valueExcVat == valueExcVat &&
+        o.valueIncVat == valueIncVat;
+  }
+
+  @override
+  int get hashCode {
+    return validFrom.hashCode ^
+        validTo.hashCode ^
+        valueExcVat.hashCode ^
+        valueIncVat.hashCode;
   }
 }

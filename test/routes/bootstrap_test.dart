@@ -12,9 +12,12 @@ import 'mocks.dart';
 
 main() {
   Widget makeWidgetTestable(
-      {OctopusEneryClient octoEnergyClient, FlutterSecureStorage store}) {
+      {OctopusEneryClient octoEnergyClient,
+      FlutterSecureStorage store,
+      int httpTimeout}) {
     var ocotManager = OctopusManager(
-        octopusEnergyClient: octoEnergyClient ?? MockOctopusEnergyCLient());
+        octopusEnergyClient: octoEnergyClient ?? MockOctopusEnergyCLient(),
+        timeoutDuration: httpTimeout);
 
     return MaterialApp(
       home: Scaffold(
@@ -134,17 +137,19 @@ main() {
 
       await tester.tap(find.text('Test'));
       // await tester.pump(Duration(seconds: 5));
-      await tester.pumpAndSettle();
+      await tester.pump(Duration(seconds: 5));
 
       expect(find.text('Confirm'), findsOneWidget);
 
       await tester.tap(find.text('Yes'));
       await tester.pumpAndSettle();
+      //make sure to pump enough time to avoid pending timers
+      await tester.pump(Duration(seconds: 10));
 
       verify(mockLocalStore.write(
               key: argThat(isNotNull, named: 'key'),
               value: argThat(isNotNull, named: 'value')))
-          .called(4);
+          .called(7);
     });
   });
 }
