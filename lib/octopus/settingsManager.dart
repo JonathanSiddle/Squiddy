@@ -122,22 +122,26 @@ class SettingsManager extends ChangeNotifier {
   }
 
   Future<bool> _saveThemeSetting(String value) async {
+    if (value == null) return false;
     _localStore.write(key: 'themeBrightness', value: value);
     return true;
   }
 
   Future<bool> saveActiveAgileTariff(String tariff) async {
+    if (tariff == null) return false;
     await _localStore.write(key: ACTIVE_AGILE_TARIFF_KEY, value: tariff);
     return true;
   }
 
   Future<bool> saveSelectedAgileRegion(String tariff) async {
+    if (tariff == null) return false;
     await _localStore.write(
         key: SELECTED_AGILE_REGION_KEY, value: _selectedAgileRegion);
     return true;
   }
 
   Future<bool> saveShowAgilePrices(bool showPrices) async {
+    if (showPrices == null) return false;
     await _localStore.write(
         key: SHOW_AGILE_PRICES_KEY, value: showPrices.toString());
     return true;
