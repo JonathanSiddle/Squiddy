@@ -1,0 +1,6 @@
+framework module biometric_storage {
+  umbrella header "biometric_storage-umbrella.h"
+
+  export *
+  module * { export * }
+}

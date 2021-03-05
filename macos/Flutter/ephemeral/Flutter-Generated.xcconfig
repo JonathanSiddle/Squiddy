@@ -1,0 +1,12 @@
+// This is a generated file; do not edit or check into version control.
+FLUTTER_ROOT=/Users/jonathansiddle/fvm/versions/2.0.0
+FLUTTER_APPLICATION_PATH=/Users/jonathansiddle/Documents/squiddy
+FLUTTER_TARGET=/Users/jonathansiddle/Documents/squiddy/lib/main.dart
+FLUTTER_BUILD_DIR=build
+FLUTTER_BUILD_NAME=1.2.2
+FLUTTER_BUILD_NUMBER=22
+EXCLUDED_ARCHS=arm64
+DART_OBFUSCATION=false
+TRACK_WIDGET_CREATION=true
+TREE_SHAKE_ICONS=false
+PACKAGE_CONFIG=/Users/jonathansiddle/Documents/squiddy/.dart_tool/package_config.json
