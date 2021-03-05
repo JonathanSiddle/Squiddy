@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:squiddy/Charts/octoLineChart.dart';
 import 'package:squiddy/octopus/octopusEnergyClient.dart';
+import 'package:squiddy/widgets/responsiveWidget.dart';
 
 class OverviewSummary extends StatelessWidget {
   final format = DateFormat('MMM');
@@ -47,15 +48,26 @@ class OverviewSummary extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             // SizedBox(height: 600, width: 400, child: BarChartSample2()),
-            IntrinsicWidth(
-                child: ConstrainedBox(
-                    //this should be screen width
-                    constraints: BoxConstraints(minWidth: screenWidth - 70),
-                    child: OctoLineChart(
-                      aspectRatio: 16 / 9,
-                      data: data,
-                      isCurved: false,
-                    ))),
+            ResponsiveWidget(
+              smallScreen: IntrinsicWidth(
+                  child: ConstrainedBox(
+                      //this should be screen width
+                      constraints: BoxConstraints(minWidth: screenWidth - 70),
+                      child: OctoLineChart(
+                        aspectRatio: 16 / 9,
+                        data: data,
+                        isCurved: false,
+                      ))),
+              largeScreen: IntrinsicWidth(
+                  child: ConstrainedBox(
+                      //this should be screen width
+                      constraints: BoxConstraints(maxWidth: 600),
+                      child: OctoLineChart(
+                        aspectRatio: 16 / 9,
+                        data: data,
+                        isCurved: false,
+                      ))),
+            ),
             Padding(
               padding: const EdgeInsets.all(10.0),
               child: Row(

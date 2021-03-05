@@ -1,12 +1,17 @@
+import 'dart:convert';
+
+import 'package:biometric_storage/biometric_storage.dart';
 import 'package:dynamic_theme/dynamic_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show SystemUiOverlayStyle, rootBundle;
+import 'package:flutter/services.dart'
+    show PlatformException, SystemUiOverlayStyle, rootBundle;
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:squiddy/Theme/SquiddyTheme.dart';
 import 'package:squiddy/octopus/OctopusManager.dart';
 import 'package:squiddy/octopus/octopusEnergyClient.dart';
+import 'package:squiddy/octopus/secureStore.dart';
 import 'package:squiddy/octopus/settingsManager.dart';
 import 'package:squiddy/routes/bootstrap.dart';
 import 'package:squiddy/routes/monthsOverview.dart';
@@ -16,17 +21,32 @@ import 'octopus/octopusEnergyClient.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  var sentryURL = environment['sentryURL'];
+  var sentryURL = environment['sentryURL'] ?? ' ';
 
-  var settingsManager = SettingsManager();
+  final canAuthenticate = await BiometricStorage().canAuthenticate();
+  BiometricStorageFile secureData;
+  if (canAuthenticate == CanAuthenticateResponse.success) {
+    secureData = await BiometricStorage().getStorage('squiddy_data',
+        options: StorageFileInitOptions(authenticationRequired: false));
+  } else {
+    throw PlatformException(
+        code: '1', message: 'Platform does not support authenticated storage');
+  }
+
+  var rawData = await secureData.read();
+
+  var settingsManager = SettingsManager(
+      localStore: SecureStore(storageFile: secureData),
+      settingsMap: rawData == null ? {} : json.decode(rawData));
+
   var octoManager = OctopusManager(logErrors: true);
-  await settingsManager.loadSettings();
+  // await settingsManager.loadSettings();
   if (settingsManager.accountDetailsSet) {
     //if previously save details, assume they have been validated
     settingsManager.validated = true;
   }
 
-  await settingsManager.saveAgileInformation();
+  await settingsManager.saveSettings();
 
   var bootstrap = MultiProvider(
     providers: [
@@ -102,7 +122,7 @@ class _MyAppState extends State<MyApp> {
                 settings.activeAgileTariff = '';
                 settings.selectedAgileRegion = '';
               }
-              settings.saveAgileInformation();
+              settings.saveSettings();
             });
       }
     }
@@ -192,12 +212,14 @@ class _MyAppState extends State<MyApp> {
               ),
               Padding(
                 padding: const EdgeInsets.all(20.0),
-                child: RaisedButton(
+                child: ElevatedButton(
                     child: Text(
                       'Retry',
                       style: TextStyle(color: Colors.white),
                     ),
-                    color: SquiddyTheme.squiddySecondary,
+                    style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                            SquiddyTheme.squiddySecondary)),
                     onPressed: () async {
                       setState(() {
                         octoManager.retryLogin();
@@ -206,12 +228,14 @@ class _MyAppState extends State<MyApp> {
               ),
               Padding(
                 padding: const EdgeInsets.all(20.0),
-                child: RaisedButton(
+                child: ElevatedButton(
                     child: Text(
                       'Logout',
                       style: TextStyle(color: Colors.white),
                     ),
-                    color: Colors.red,
+                    style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                            SquiddyTheme.squiddySecondary)),
                     onPressed: () async {
                       await settings.cleanSettings();
                     }),
@@ -247,12 +271,14 @@ class _MyAppState extends State<MyApp> {
               Text('- Logging in again'),
               Padding(
                 padding: const EdgeInsets.all(20.0),
-                child: RaisedButton(
+                child: ElevatedButton(
                     child: Text(
                       'Logout',
                       style: TextStyle(color: Colors.white),
                     ),
-                    color: Colors.red,
+                    style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                            SquiddyTheme.squiddySecondary)),
                     onPressed: () async {
                       await settingsManager.cleanSettings();
                     }),

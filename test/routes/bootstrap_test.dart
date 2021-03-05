@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:provider/provider.dart';
 import 'package:squiddy/octopus/OctopusManager.dart';
 import 'package:squiddy/octopus/octopusEnergyClient.dart';
+import 'package:squiddy/octopus/secureStore.dart';
 import 'package:squiddy/octopus/settingsManager.dart';
 import 'package:squiddy/routes/bootstrap.dart';
 
@@ -13,7 +13,7 @@ import 'mocks.dart';
 main() {
   Widget makeWidgetTestable(
       {OctopusEneryClient octoEnergyClient,
-      FlutterSecureStorage store,
+      SquiddyDataStore store,
       int httpTimeout}) {
     var ocotManager = OctopusManager(
         octopusEnergyClient: octoEnergyClient ?? MockOctopusEnergyCLient(),
@@ -108,8 +108,6 @@ main() {
       when(mockOctoClient.getConsumptionLast30Days(any, any, any))
           .thenAnswer((_) => Future.value(energyConsumption));
       var mockLocalStore = MockLocalStore();
-      when(mockLocalStore.read(key: argThat(isNotNull, named: 'key')))
-          .thenAnswer((_) => Future.value('test'));
 
       var widget = makeWidgetTestable(
           octoEnergyClient: mockOctoClient, store: mockLocalStore);
@@ -146,10 +144,7 @@ main() {
       //make sure to pump enough time to avoid pending timers
       await tester.pump(Duration(seconds: 10));
 
-      verify(mockLocalStore.write(
-              key: argThat(isNotNull, named: 'key'),
-              value: argThat(isNotNull, named: 'value')))
-          .called(7);
+      verify(mockLocalStore.write(data: anyNamed('data'))).called(7);
     });
   });
 }

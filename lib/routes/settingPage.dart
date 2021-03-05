@@ -115,7 +115,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     onChanged: (b) {
                       settingsManager.showAgilePrices = b;
                       settingsManager.selectedAgileRegion = selectedValue;
-                      settingsManager.saveAgileInformation();
+                      settingsManager.saveSettings();
                     }),
                 Text('Show Agile Prices')
               ],
@@ -128,7 +128,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     selectedValue = v;
                   });
                   settingsManager.selectedAgileRegion = v;
-                  settingsManager.saveAgileInformation();
+                  settingsManager.saveSettings();
                 },
                 items: agileRegions.keys.map((key) {
                   var value = agileRegions[key];
@@ -139,13 +139,15 @@ class _SettingsPageState extends State<SettingsPage> {
             Row(
               children: <Widget>[
                 Expanded(
-                  child: RaisedButton(
+                  child: ElevatedButton(
                     child: Text(
                       'Logout',
                       style: TextStyle(color: Colors.white),
                     ),
-                    color: Colors.red,
-                    elevation: 5,
+                    style: ButtonStyle(
+                        backgroundColor:
+                            MaterialStateProperty.all<Color>(Colors.red),
+                        elevation: MaterialStateProperty.all<double>(5)),
                     onPressed: () async {
                       print('Logging out');
                       await settingsManager.cleanSettings();

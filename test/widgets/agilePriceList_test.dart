@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:provider/provider.dart';
 import 'package:squiddy/octopus/OctopusManager.dart';
 import 'package:squiddy/octopus/octopusEnergyClient.dart';
+import 'package:squiddy/octopus/secureStore.dart';
 import 'package:squiddy/octopus/settingsManager.dart';
 import 'package:squiddy/widgets/agilePriceCard.dart';
 import 'package:squiddy/widgets/agilePriceList.dart';
@@ -14,7 +14,7 @@ import '../routes/mocks.dart';
 main() {
   Future<Widget> makeWidgetTestable(
       {@required OctopusEneryClient octoEnergyClient,
-      @required FlutterSecureStorage store}) async {
+      @required SquiddyDataStore store}) async {
     var octoManager = OctopusManager(octopusEnergyClient: octoEnergyClient);
     var settingsManager = SettingsManager(localStore: store);
     settingsManager.activeAgileTariff = 'testTariff';

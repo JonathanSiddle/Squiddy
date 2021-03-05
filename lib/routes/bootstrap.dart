@@ -64,8 +64,10 @@ class _BootStrapPageState extends State<BootStrap> {
                 currentStep: _stepIndex ?? 0,
                 controlsBuilder: (context, {onStepCancel, onStepContinue}) {
                   if (_stepIndex != 0) {
-                    return OutlineButton(
-                      color: SquiddyTheme.squiddySecondary,
+                    return OutlinedButton(
+                      style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all<Color>(
+                              SquiddyTheme.squiddySecondary)),
                       child: Text(
                         'Back',
                         style: TextStyle(color: SquiddyTheme.squiddySecondary),
@@ -123,8 +125,12 @@ class _BootStrapPageState extends State<BootStrap> {
                                         settingsManager.accountId = v.trim();
                                       },
                                     ),
-                                    RaisedButton(
-                                      color: SquiddyTheme.squiddyPrimary,
+                                    ElevatedButton(
+                                      style: ButtonStyle(
+                                          backgroundColor:
+                                              MaterialStateProperty.all<Color>(
+                                                  SquiddyTheme
+                                                      .squiddySecondary)),
                                       child: Text(
                                         'Go',
                                         style: TextStyle(color: Colors.white),
@@ -228,8 +234,11 @@ class _BootStrapPageState extends State<BootStrap> {
                                                     ))
                                             ?.toList(),
                                       ),
-                                RaisedButton(
-                                  color: SquiddyTheme.squiddyPrimary,
+                                ElevatedButton(
+                                  style: ButtonStyle(
+                                      backgroundColor:
+                                          MaterialStateProperty.all<Color>(
+                                              SquiddyTheme.squiddySecondary)),
                                   child: Text(
                                     'Test',
                                     style: TextStyle(color: Colors.white),
@@ -271,8 +280,7 @@ class _BootStrapPageState extends State<BootStrap> {
                                               false;
                                           settingsManager.selectedAgileRegion =
                                               '';
-                                          settingsManager
-                                              .saveAgileInformation();
+                                          settingsManager.saveSettings();
                                         }
                                         //make sure octomanager re-inits data with new settings
                                         octopusManager.initData(

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
@@ -9,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:squiddy/main.dart';
 import 'package:squiddy/octopus/OctopusManager.dart';
 import 'package:squiddy/octopus/octopusEnergyClient.dart';
+import 'package:squiddy/octopus/secureStore.dart';
 import 'package:squiddy/octopus/settingsManager.dart';
 
 import 'mocks.dart';
@@ -16,8 +16,8 @@ import 'mocks.dart';
 main() {
   Future<Widget> makeWidgetTestable(
       {OctopusEneryClient octoEnergyClient,
-      FlutterSecureStorage store,
       int httpTimeout,
+      SquiddyDataStore store,
       bool loadSavedSettings}) async {
     if (loadSavedSettings == null) {
       loadSavedSettings = false;
@@ -28,7 +28,6 @@ main() {
 
     var settingsManager = SettingsManager(localStore: store);
     if (loadSavedSettings) {
-      await settingsManager.loadSettings();
       settingsManager.validated = true;
     }
     settingsManager.showAgilePrices = false;
@@ -95,8 +94,6 @@ main() {
           (realInvocation) =>
               Future.delayed(Duration(seconds: 60), () => null));
       var mockLocalStore = MockLocalStore();
-      when(mockLocalStore.read(key: argThat(isNotNull, named: 'key')))
-          .thenAnswer((_) => Future.value('test'));
 
       var widget = await makeWidgetTestable(
           octoEnergyClient: mockOctoClient,
@@ -140,10 +137,7 @@ main() {
       //pump for extra time to make sure delayed future gets resolved
       await tester.pump(Duration(seconds: 60));
 
-      verify(mockLocalStore.write(
-              key: argThat(isNotNull, named: 'key'),
-              value: argThat(isNotNull, named: 'value')))
-          .called(7);
+      verify(mockLocalStore.write(data: anyNamed('data'))).called(7);
     });
 
     testWidgets(
@@ -178,8 +172,6 @@ main() {
       when(mockOctoClient.getConsumtion(any, any, any))
           .thenAnswer((realInvocation) => Future.value(null));
       var mockLocalStore = MockLocalStore();
-      when(mockLocalStore.read(key: argThat(isNotNull, named: 'key')))
-          .thenAnswer((_) => Future.value('test'));
 
       var widget = await makeWidgetTestable(
           octoEnergyClient: mockOctoClient,
@@ -220,10 +212,7 @@ main() {
       expect(find.byIcon(FontAwesomeIcons.sadTear), findsOneWidget);
       expect(find.text('Logout'), findsOneWidget);
 
-      verify(mockLocalStore.write(
-              key: argThat(isNotNull, named: 'key'),
-              value: argThat(isNotNull, named: 'value')))
-          .called(10);
+      verify(mockLocalStore.write(data: anyNamed('data'))).called(10);
     });
 
     testWidgets(
@@ -297,8 +286,6 @@ main() {
       when(mockOctoClient.getConsumtion(any, any, any))
           .thenAnswer((realInvocation) => Future.value(energyMonths));
       var mockLocalStore = MockLocalStore();
-      when(mockLocalStore.read(key: argThat(isNotNull, named: 'key')))
-          .thenAnswer((_) => Future.value('test'));
 
       var widget = await makeWidgetTestable(
           octoEnergyClient: mockOctoClient,
@@ -339,10 +326,7 @@ main() {
 
       expect(find.text('Overview'), findsOneWidget);
 
-      verify(mockLocalStore.write(
-              key: argThat(isNotNull, named: 'key'),
-              value: argThat(isNotNull, named: 'value')))
-          .called(10);
+      verify(mockLocalStore.write(data: anyNamed('data'))).called(10);
     });
 
     testWidgets('Returning results shows results, has already logged in',
@@ -415,8 +399,6 @@ main() {
       when(mockOctoClient.getConsumtion(any, any, any))
           .thenAnswer((realInvocation) => Future.value(energyMonths));
       var mockLocalStore = MockLocalStore();
-      when(mockLocalStore.read(key: argThat(isNotNull, named: 'key')))
-          .thenAnswer((_) => Future.value('test'));
 
       var widget = await makeWidgetTestable(
           octoEnergyClient: mockOctoClient,
@@ -492,15 +474,12 @@ main() {
       var mockOctoClient = MockOctopusEnergyCLient();
       when(mockOctoClient.getAccountDetails(any, any)).thenAnswer(
           (_) => Future.delayed(Duration(seconds: 10), () => accountDetails));
-      when(mockOctoClient.getConsumptionLast30Days(any, any, any)).thenAnswer(
-          (_) => Future.delayed(
-              Duration(seconds: 60), () => List<EnergyConsumption>()));
+      when(mockOctoClient.getConsumptionLast30Days(any, any, any))
+          .thenAnswer((_) => Future.delayed(Duration(seconds: 60), () => []));
       when(mockOctoClient.getConsumtion(any, any, any)).thenAnswer(
           (realInvocation) =>
               Future.delayed(Duration(seconds: 60), () => energyMonths));
       var mockLocalStore = MockLocalStore();
-      when(mockLocalStore.read(key: argThat(isNotNull, named: 'key')))
-          .thenAnswer((_) => Future.value('test'));
 
       var widget = await makeWidgetTestable(
           octoEnergyClient: mockOctoClient,
@@ -571,14 +550,11 @@ main() {
       var mockOctoClient = MockOctopusEnergyCLient();
       when(mockOctoClient.getAccountDetails(any, any)).thenAnswer(
           (_) => Future.delayed(Duration(seconds: 10), () => accountDetails));
-      when(mockOctoClient.getConsumptionLast30Days(any, any, any)).thenAnswer(
-          (_) => Future.delayed(
-              Duration(seconds: 60), () => List<EnergyConsumption>()));
+      when(mockOctoClient.getConsumptionLast30Days(any, any, any))
+          .thenAnswer((_) => Future.delayed(Duration(seconds: 60), () => []));
       when(mockOctoClient.getConsumtion(any, any, any))
           .thenAnswer((realInvocation) => Future.value(null));
       var mockLocalStore = MockLocalStore();
-      when(mockLocalStore.read(key: argThat(isNotNull, named: 'key')))
-          .thenAnswer((_) => Future.value('test'));
 
       var widget = await makeWidgetTestable(
           octoEnergyClient: mockOctoClient,
@@ -647,14 +623,11 @@ main() {
       var mockOctoClient = MockOctopusEnergyCLient();
       when(mockOctoClient.getAccountDetails(any, any)).thenAnswer(
           (_) => Future.delayed(Duration(seconds: 10), () => accountDetails));
-      when(mockOctoClient.getConsumptionLast30Days(any, any, any)).thenAnswer(
-          (_) => Future.delayed(
-              Duration(seconds: 60), () => List<EnergyConsumption>()));
+      when(mockOctoClient.getConsumptionLast30Days(any, any, any))
+          .thenAnswer((_) => Future.delayed(Duration(seconds: 60), () => []));
       when(mockOctoClient.getConsumtion(any, any, any))
           .thenAnswer((realInvocation) => Future.value(null));
       var mockLocalStore = MockLocalStore();
-      when(mockLocalStore.read(key: argThat(isNotNull, named: 'key')))
-          .thenAnswer((_) => Future.value('test'));
 
       var widget = await makeWidgetTestable(
           octoEnergyClient: mockOctoClient,
@@ -676,10 +649,7 @@ main() {
       expect(find.byType(Image), findsOneWidget);
       expect(find.text('Squiddy'), findsOneWidget);
 
-      verify(mockLocalStore.write(
-              key: argThat(isNotNull, named: 'key'),
-              value: argThat(isNotNull, named: 'value')))
-          .called(10);
+      verify(mockLocalStore.write(data: anyNamed('data'))).called(10);
     });
   });
 }

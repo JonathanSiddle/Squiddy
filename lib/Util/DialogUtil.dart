@@ -19,10 +19,10 @@ class DialogUtil {
               style: TextStyle(
                   fontWeight: FontWeight.bold,
                   color: Theme.of(context).primaryColor)),
-          content:
-              Text(message, style: TextStyle(color: Theme.of(context).accentColor)),
+          content: Text(message,
+              style: TextStyle(color: Theme.of(context).accentColor)),
           actions: <Widget>[
-            FlatButton(
+            TextButton(
               child: Text('OK',
                   style: TextStyle(color: Theme.of(context).primaryColor)),
               onPressed: () {
@@ -52,14 +52,14 @@ class DialogUtil {
           title: Text(title ?? 'Confirm'),
           content: Text(message),
           actions: <Widget>[
-            FlatButton(
+            TextButton(
               child: Text('Yes'),
               onPressed: () {
                 pressedYes = true;
                 Navigator.of(context).pop();
               },
             ),
-            FlatButton(
+            TextButton(
               child: Text('No'),
               onPressed: () {
                 print('Clicked No option!');

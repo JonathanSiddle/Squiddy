@@ -58,12 +58,12 @@ class OctopusEneryClient {
     var now = DateTime.now();
     var lastMonth = now.subtract(Duration(days: 30));
 
-    var months = await getConsumtion(apiKey, meterPoint, meter,
+    List<EnergyMonth> months = await getConsumtion(apiKey, meterPoint, meter,
         periodFrom: lastMonth, periodTo: now);
 
     //potentially could be null, init to empty list if this is the case
     if (months == null) {
-      months = List<EnergyMonth>();
+      months = [];
     }
 
     return months
@@ -118,7 +118,7 @@ class OctopusEneryClient {
 
   Future<List<AgilePrice>> getCurrentAgilePrices(
       {@required String tariffCode}) async {
-    var agilePrices = List<AgilePrice>();
+    List<AgilePrice> agilePrices = [];
 
     http.Response response;
     try {
@@ -139,11 +139,11 @@ class OctopusEneryClient {
   static List<EnergyMonth> getEnergyMonthsFromConsumption(
       List<EnergyConsumption> consumption) {
     if (consumption == null || consumption.length <= 0) {
-      return List<EnergyMonth>();
+      return [];
     } else {
       var dateFormat = DateFormat('HH:mm');
       //assume consumption in reverse order, so flip to go from the earliest date first
-      var energyMonths = List<EnergyMonth>();
+      List<EnergyMonth> energyMonths = [];
 
       var consump = consumption.reversed.toList();
 
@@ -201,11 +201,11 @@ class OctopusEneryClient {
 class EnergyMonth {
   DateTime begin;
   DateTime end;
-  var days = List<EnergyDay>();
+  List<EnergyDay> days = [];
 
   EnergyMonth({this.begin, this.end, this.days}) {
     if (days == null) {
-      days = List<EnergyDay>();
+      days = [];
     }
   }
 

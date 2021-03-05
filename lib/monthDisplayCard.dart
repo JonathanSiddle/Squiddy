@@ -71,30 +71,38 @@ class SquiddyCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  graphData != null
-                      ? Padding(
-                          padding:
-                              this.graphPadding ?? const EdgeInsets.all(10.0),
-                          child: OctoLineChart(
-                            data: graphData,
-                            aspectRatio: this.ratio ?? 21.0 / 3.0,
-                            interactive: this.graphInteractive ?? false,
-                            showLeftAxis: this.graphShowLeftAxis ?? false,
-                            showBottomAxis: this.graphShowBottomAxis ?? false,
-                            isCurved: true,
-                            gradientColours:
-                                this.graphColours ?? [Colors.grey, Colors.grey],
-                          ),
-                        )
-                      : Padding(
-                          padding: const EdgeInsets.fromLTRB(0, 10, 0, 0),
-                          child: Center(
-                            child: Text(
-                                     'Data missing',
-                              style: TextStyle(fontSize: 36),
-                            ),
-                          ),
-                        )
+                  Flexible(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        graphData != null
+                            ? Padding(
+                                padding: this.graphPadding ??
+                                    const EdgeInsets.all(10.0),
+                                child: OctoLineChart(
+                                  data: graphData,
+                                  aspectRatio: this.ratio ?? 21.0 / 3.0,
+                                  interactive: this.graphInteractive ?? false,
+                                  showLeftAxis: this.graphShowLeftAxis ?? false,
+                                  showBottomAxis:
+                                      this.graphShowBottomAxis ?? false,
+                                  isCurved: true,
+                                  gradientColours: this.graphColours ??
+                                      [Colors.grey, Colors.grey],
+                                ),
+                              )
+                            : Padding(
+                                padding: const EdgeInsets.fromLTRB(0, 10, 0, 0),
+                                child: Center(
+                                  child: Text(
+                                    'Data missing',
+                                    style: TextStyle(fontSize: 36),
+                                  ),
+                                ),
+                              )
+                      ],
+                    ),
+                  )
                 ],
               ),
             ),

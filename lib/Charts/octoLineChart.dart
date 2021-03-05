@@ -27,9 +27,8 @@ class OctoLineChart extends StatefulWidget {
 }
 
 class _OctoLineChartState extends State<OctoLineChart> {
-
   List<Color> gradientColors;
-  //graph data stuff 
+  //graph data stuff
   List<num> rawData;
   Stats<num> stats;
   List<num> normalisedData;
@@ -41,7 +40,7 @@ class _OctoLineChartState extends State<OctoLineChart> {
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    // * Graph calc stuff, should ensure only done once 
+    // * Graph calc stuff, should ensure only done once
     rawData = this.widget.data.values.toList();
     stats = Stats.fromData(rawData);
     normalisedData = normaliseData(data: rawData, rMin: 0, rMax: 10);
@@ -218,7 +217,7 @@ class _OctoLineChartState extends State<OctoLineChart> {
   }
 
   List<FlSpot> getGraphSpots(List<num> values) {
-    var returnData = List<FlSpot>();
+    List<FlSpot> returnData = [];
 
     int counter = 0;
     for (num v in values) {
@@ -244,12 +243,12 @@ class _OctoLineChartState extends State<OctoLineChart> {
 
     if (inData.length <= 1) return inData;
     hasValGreaterThanTen = inData.any((element) => element > 10);
-    //this is just very rough scalling to cover an edge case, I think 
+    //this is just very rough scalling to cover an edge case, I think
     //this could probably be handled better in the long-term
     if (inMin == inMax) {
       print('min == max');
       while (hasValGreaterThanTen) {
-        inData = inData.map((s) => s > 10 ?  s / 10 : s).toList();
+        inData = inData.map((s) => s > 10 ? s / 10 : s).toList();
         hasValGreaterThanTen = inData.any((element) => element > 10);
         print('Got to the end of loop');
       }
@@ -257,7 +256,7 @@ class _OctoLineChartState extends State<OctoLineChart> {
       return inData;
     }
 
-    return inData 
+    return inData
         .map((d) => ((d - inMin) * (rMax - rMin) / (inMax - inMin)) + rMin)
         .toList();
   }

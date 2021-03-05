@@ -13,6 +13,7 @@ import 'package:squiddy/octopus/settingsManager.dart';
 import 'package:squiddy/routes/monthDaysPage.dart';
 import 'package:squiddy/routes/settingPage.dart';
 import 'package:squiddy/widgets/agilePriceList.dart';
+import 'package:squiddy/widgets/responsiveWidget.dart';
 
 import '../monthDisplayCard.dart';
 
@@ -122,12 +123,14 @@ class _MonthsOverviewState extends State<MonthsOverview> {
                   ),
                   Padding(
                     padding: const EdgeInsets.all(20.0),
-                    child: RaisedButton(
+                    child: ElevatedButton(
                         child: Text(
                           'Retry',
                           style: TextStyle(color: Colors.white),
                         ),
-                        color: SquiddyTheme.squiddySecondary,
+                        style: ButtonStyle(
+                            backgroundColor: MaterialStateProperty.all<Color>(
+                                SquiddyTheme.squiddySecondary)),
                         onPressed: () async {
                           setState(() {
                             octoManager.retryLogin();
@@ -136,12 +139,14 @@ class _MonthsOverviewState extends State<MonthsOverview> {
                   ),
                   Padding(
                     padding: const EdgeInsets.all(20.0),
-                    child: RaisedButton(
+                    child: ElevatedButton(
                         child: Text(
                           'Logout',
                           style: TextStyle(color: Colors.white),
                         ),
-                        color: Colors.red,
+                        style: ButtonStyle(
+                            backgroundColor:
+                                MaterialStateProperty.all<Color>(Colors.red)),
                         onPressed: () async {
                           await settings.cleanSettings();
                         }),
@@ -162,12 +167,15 @@ class _MonthsOverviewState extends State<MonthsOverview> {
                       Text('try logging out and logging back in'),
                       Padding(
                         padding: const EdgeInsets.all(20.0),
-                        child: RaisedButton(
+                        child: ElevatedButton(
                             child: Text(
                               'Logout',
                               style: TextStyle(color: Colors.white),
                             ),
-                            color: Colors.red,
+                            style: ButtonStyle(
+                                backgroundColor:
+                                    MaterialStateProperty.all<Color>(
+                                        Colors.red)),
                             onPressed: () async {
                               await settings.cleanSettings();
                             }),
@@ -177,110 +185,436 @@ class _MonthsOverviewState extends State<MonthsOverview> {
                 /**********************
                  *Main area section if all goes well...
                 ***********************/
-                : SafeArea(
-                    child: SmartRefresher(
-                      enablePullDown: true,
-                      controller: _refreshController,
-                      onRefresh: _onRefresh,
-                      onLoading: _onLoading,
-                      child: CustomScrollView(
-                        slivers: <Widget>[
-                          SliverList(
-                            delegate: SliverChildListDelegate([
-                              Column(
-                                children: <Widget>[
-                                  Padding(
-                                    padding: const EdgeInsets.fromLTRB(
-                                        10, 10, 10, 5),
-                                    child: Row(
-                                      children: <Widget>[
-                                        Text(
-                                          'Overview',
-                                          style: TextStyle(fontSize: 48),
-                                        ),
-                                        Expanded(child: Container()),
-                                        IconButton(
-                                            icon: Icon(
-                                              FontAwesomeIcons.cog,
-                                              size: 36,
-                                            ),
-                                            onPressed: () {
-                                              Navigator.push(
-                                                  context,
-                                                  SlideTopRoute(
-                                                      page: SettingsPage(),
-                                                      name: 'settings'));
-                                            }),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ]),
-                          ),
-                          /********************
-                           * Agile price section
-                           *******************/
-                          //What will become the new agile price section
-                          settings.showAgilePrices
-                              ? SliverToBoxAdapter(
-                                  child: AgilePriceList(),
-                                )
-                              : SliverToBoxAdapter(
-                                  child: Container(
-                                    height: 10,
-                                  ),
-                                ),
-                          SliverList(
-                            delegate: SliverChildListDelegate([
-                              Column(
-                                children: <Widget>[
-                                  Padding(
-                                    padding: const EdgeInsets.all(10.0),
-                                    child: OverviewSummary(),
-                                  ),
-                                ],
-                              ),
-                            ]),
-                          ),
-                          SliverList(
-                            delegate:
-                                SliverChildBuilderDelegate((context, index) {
-                              var cMonth = months[index];
-                              var displayFormat = DateFormat.yMMM();
+                : ResponsiveWidget(
+                    smallScreen: getSmallScreenView(months, cardColors),
+                    mediumScreen:
+                        getLargeScreenView(months, cardColors, gridSize: 2),
+                    largeScreen:
+                        getLargeScreenView(months, cardColors, gridSize: 3),
+                    exLargeScreen:
+                        getLargeScreenView(months, cardColors, gridSize: 4),
+                  );
+  }
 
-                              var urlMonth = urlDate.format(cMonth.begin);
-                              var monthDays = cMonth.days;
-
-                              Map<String, num> data = {};
-                              monthDays.forEach((d) =>
-                                  data[d.date.day.toString()] =
-                                      d.totalConsumption);
-                              return SquiddyCard(
-                                graphData: data,
-                                onTap: () {
-                                  Navigator.push(
-                                      context,
-                                      SlideLeftRoute(
-                                          name: '/monthDays/$urlMonth',
-                                          page: Provider(
-                                              create: (_) => cMonth,
-                                              child: MonthDaysPage())));
-                                },
-                                color: cardColors[index],
-                                inkColor: cardColors[index] ==
-                                        SquiddyTheme.squiddyPrimary
-                                    ? SquiddyTheme.squiddyPrimary[300]
-                                    : SquiddyTheme.squiddySecondary[300],
-                                title: displayFormat.format(cMonth.begin),
-                                total:
-                                    '${cMonth.totalConsumption.toStringAsFixed(2)}kWh',
-                              );
-                            }, childCount: months.length),
-                          )
+  Widget getLargeScreenView(
+      List<EnergyMonth> months, List<MaterialAccentColor> cardColors,
+      {int gridSize = 2}) {
+    return SafeArea(
+      child: SmartRefresher(
+        enablePullDown: true,
+        controller: _refreshController,
+        onRefresh: _onRefresh,
+        onLoading: _onLoading,
+        child: CustomScrollView(
+          slivers: <Widget>[
+            SliverList(
+              delegate: SliverChildListDelegate([
+                Column(
+                  children: <Widget>[
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(10, 10, 10, 5),
+                      child: Row(
+                        children: <Widget>[
+                          Text(
+                            'Overview',
+                            style: TextStyle(fontSize: 48),
+                          ),
+                          Expanded(child: Container()),
+                          IconButton(
+                              icon: Icon(
+                                FontAwesomeIcons.cog,
+                                size: 36,
+                              ),
+                              onPressed: () {
+                                Navigator.push(
+                                    context,
+                                    SlideTopRoute(
+                                        page: SettingsPage(),
+                                        name: 'settings'));
+                              }),
                         ],
                       ),
                     ),
-                  );
+                  ],
+                ),
+              ]),
+            ),
+            /********************
+                           * Agile price section
+                           *******************/
+            //What will become the new agile price section
+            settings.showAgilePrices
+                ? SliverToBoxAdapter(
+                    child: AgilePriceList(),
+                  )
+                : SliverToBoxAdapter(
+                    child: Container(
+                      height: 10,
+                    ),
+                  ),
+            SliverList(
+              delegate: SliverChildListDelegate([
+                Column(
+                  children: <Widget>[
+                    Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: OverviewSummary(),
+                    ),
+                  ],
+                ),
+              ]),
+            ),
+            // ResponsiveWidget(
+            //   smallScreen: SliverList(
+            //     delegate:
+            //         SliverChildBuilderDelegate((context, index) {
+            //       var cMonth = months[index];
+            //       var displayFormat = DateFormat.yMMM();
+
+            //       var urlMonth = urlDate.format(cMonth.begin);
+            //       var monthDays = cMonth.days;
+
+            //       Map<String, num> data = {};
+            //       monthDays.forEach((d) =>
+            //           data[d.date.day.toString()] =
+            //               d.totalConsumption);
+            //       return SquiddyCard(
+            //         graphData: data,
+            //         onTap: () {
+            //           Navigator.push(
+            //               context,
+            //               SlideLeftRoute(
+            //                   name: '/monthDays/$urlMonth',
+            //                   page: Provider(
+            //                       create: (_) => cMonth,
+            //                       child: MonthDaysPage())));
+            //         },
+            //         color: cardColors[index],
+            //         inkColor: cardColors[index] ==
+            //                 SquiddyTheme.squiddyPrimary
+            //             ? SquiddyTheme.squiddyPrimary[300]
+            //             : SquiddyTheme.squiddySecondary[300],
+            //         title: displayFormat.format(cMonth.begin),
+            //         total:
+            //             '${cMonth.totalConsumption.toStringAsFixed(2)}kWh',
+            //       );
+            //     }, childCount: months.length),
+            //   ),
+            //   // largeScreen: SliverGrid(
+            //   //     delegate: SliverChildBuilderDelegate(
+            //   //         (context, index) {
+            //   //       var cMonth = months[index];
+            //   //       var displayFormat = DateFormat.yMMM();
+
+            //   //       var urlMonth = urlDate.format(cMonth.begin);
+            //   //       var monthDays = cMonth.days;
+
+            //   //       Map<String, num> data = {};
+            //   //       monthDays.forEach((d) =>
+            //   //           data[d.date.day.toString()] =
+            //   //               d.totalConsumption);
+            //   //       return Container(
+            //   //           constraints: BoxConstraints(
+            //   //               maxWidth: 200, maxHeight: 200),
+            //   //           child: SquiddyCard(
+            //   //             graphData: data,
+            //   //             onTap: () {
+            //   //               Navigator.push(
+            //   //                   context,
+            //   //                   SlideLeftRoute(
+            //   //                       name: '/monthDays/$urlMonth',
+            //   //                       page: Provider(
+            //   //                           create: (_) => cMonth,
+            //   //                           child: MonthDaysPage())));
+            //   //             },
+            //   //             color: cardColors[index],
+            //   //             inkColor: cardColors[index] ==
+            //   //                     SquiddyTheme.squiddyPrimary
+            //   //                 ? SquiddyTheme.squiddyPrimary[300]
+            //   //                 : SquiddyTheme
+            //   //                     .squiddySecondary[300],
+            //   //             title:
+            //   //                 displayFormat.format(cMonth.begin),
+            //   //             total:
+            //   //                 '${cMonth.totalConsumption.toStringAsFixed(2)}kWh',
+            //   //           ));
+            //   //     }, childCount: months.length),
+            //   //     gridDelegate:
+            //   //         SliverGridDelegateWithFixedCrossAxisCount(
+            //   //             crossAxisCount: 2)),
+            // ),
+            SliverGrid(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: gridSize, childAspectRatio: 21 / 8),
+              delegate: SliverChildBuilderDelegate((context, index) {
+                var cMonth = months[index];
+                var displayFormat = DateFormat.yMMM();
+
+                var urlMonth = urlDate.format(cMonth.begin);
+                var monthDays = cMonth.days;
+
+                Map<String, num> data = {};
+                monthDays.forEach(
+                    (d) => data[d.date.day.toString()] = d.totalConsumption);
+                return IntrinsicHeight(
+                  child: Container(
+                    child: SquiddyCard(
+                      graphData: data,
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            SlideLeftRoute(
+                                name: '/monthDays/$urlMonth',
+                                page: Provider(
+                                    create: (_) => cMonth,
+                                    child: MonthDaysPage())));
+                      },
+                      color: cardColors[index],
+                      inkColor: cardColors[index] == SquiddyTheme.squiddyPrimary
+                          ? SquiddyTheme.squiddyPrimary[300]
+                          : SquiddyTheme.squiddySecondary[300],
+                      title: displayFormat.format(cMonth.begin),
+                      total: '${cMonth.totalConsumption.toStringAsFixed(2)}kWh',
+                    ),
+                  ),
+                );
+              }, childCount: months.length),
+            ),
+            //working
+            // SliverList(
+            //   delegate:
+            //       SliverChildBuilderDelegate((context, index) {
+            //     var cMonth = months[index];
+            //     var displayFormat = DateFormat.yMMM();
+
+            //     var urlMonth = urlDate.format(cMonth.begin);
+            //     var monthDays = cMonth.days;
+
+            //     Map<String, num> data = {};
+            //     monthDays.forEach((d) =>
+            //         data[d.date.day.toString()] =
+            //             d.totalConsumption);
+            //     return SquiddyCard(
+            //       graphData: data,
+            //       onTap: () {
+            //         Navigator.push(
+            //             context,
+            //             SlideLeftRoute(
+            //                 name: '/monthDays/$urlMonth',
+            //                 page: Provider(
+            //                     create: (_) => cMonth,
+            //                     child: MonthDaysPage())));
+            //       },
+            //       color: cardColors[index],
+            //       inkColor: cardColors[index] ==
+            //               SquiddyTheme.squiddyPrimary
+            //           ? SquiddyTheme.squiddyPrimary[300]
+            //           : SquiddyTheme.squiddySecondary[300],
+            //       title: displayFormat.format(cMonth.begin),
+            //       total:
+            //           '${cMonth.totalConsumption.toStringAsFixed(2)}kWh',
+            //     );
+            //   }, childCount: months.length),
+            // )
+          ],
+        ),
+      ),
+    );
   }
+
+  Widget getSmallScreenView(
+      List<EnergyMonth> months, List<MaterialAccentColor> cardColors) {
+    return SafeArea(
+      child: SmartRefresher(
+        enablePullDown: true,
+        controller: _refreshController,
+        onRefresh: _onRefresh,
+        onLoading: _onLoading,
+        child: CustomScrollView(
+          slivers: <Widget>[
+            SliverList(
+              delegate: SliverChildListDelegate([
+                Column(
+                  children: <Widget>[
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(10, 10, 10, 5),
+                      child: Row(
+                        children: <Widget>[
+                          Text(
+                            'Overview',
+                            style: TextStyle(fontSize: 48),
+                          ),
+                          Expanded(child: Container()),
+                          IconButton(
+                              icon: Icon(
+                                FontAwesomeIcons.cog,
+                                size: 36,
+                              ),
+                              onPressed: () {
+                                Navigator.push(
+                                    context,
+                                    SlideTopRoute(
+                                        page: SettingsPage(),
+                                        name: 'settings'));
+                              }),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ]),
+            ),
+            /********************
+                           * Agile price section
+                           *******************/
+            //What will become the new agile price section
+            settings.showAgilePrices
+                ? SliverToBoxAdapter(
+                    child: AgilePriceList(),
+                  )
+                : SliverToBoxAdapter(
+                    child: Container(
+                      height: 10,
+                    ),
+                  ),
+            SliverList(
+              delegate: SliverChildListDelegate([
+                Column(
+                  children: <Widget>[
+                    Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: OverviewSummary(),
+                    ),
+                  ],
+                ),
+              ]),
+            ),
+            // ResponsiveWidget(
+            //   smallScreen: SliverList(
+            //     delegate:
+            //         SliverChildBuilderDelegate((context, index) {
+            //       var cMonth = months[index];
+            //       var displayFormat = DateFormat.yMMM();
+
+            //       var urlMonth = urlDate.format(cMonth.begin);
+            //       var monthDays = cMonth.days;
+
+            //       Map<String, num> data = {};
+            //       monthDays.forEach((d) =>
+            //           data[d.date.day.toString()] =
+            //               d.totalConsumption);
+            //       return SquiddyCard(
+            //         graphData: data,
+            //         onTap: () {
+            //           Navigator.push(
+            //               context,
+            //               SlideLeftRoute(
+            //                   name: '/monthDays/$urlMonth',
+            //                   page: Provider(
+            //                       create: (_) => cMonth,
+            //                       child: MonthDaysPage())));
+            //         },
+            //         color: cardColors[index],
+            //         inkColor: cardColors[index] ==
+            //                 SquiddyTheme.squiddyPrimary
+            //             ? SquiddyTheme.squiddyPrimary[300]
+            //             : SquiddyTheme.squiddySecondary[300],
+            //         title: displayFormat.format(cMonth.begin),
+            //         total:
+            //             '${cMonth.totalConsumption.toStringAsFixed(2)}kWh',
+            //       );
+            //     }, childCount: months.length),
+            //   ),
+            //   // largeScreen: SliverGrid(
+            //   //     delegate: SliverChildBuilderDelegate(
+            //   //         (context, index) {
+            //   //       var cMonth = months[index];
+            //   //       var displayFormat = DateFormat.yMMM();
+
+            //   //       var urlMonth = urlDate.format(cMonth.begin);
+            //   //       var monthDays = cMonth.days;
+
+            //   //       Map<String, num> data = {};
+            //   //       monthDays.forEach((d) =>
+            //   //           data[d.date.day.toString()] =
+            //   //               d.totalConsumption);
+            //   //       return Container(
+            //   //           constraints: BoxConstraints(
+            //   //               maxWidth: 200, maxHeight: 200),
+            //   //           child: SquiddyCard(
+            //   //             graphData: data,
+            //   //             onTap: () {
+            //   //               Navigator.push(
+            //   //                   context,
+            //   //                   SlideLeftRoute(
+            //   //                       name: '/monthDays/$urlMonth',
+            //   //                       page: Provider(
+            //   //                           create: (_) => cMonth,
+            //   //                           child: MonthDaysPage())));
+            //   //             },
+            //   //             color: cardColors[index],
+            //   //             inkColor: cardColors[index] ==
+            //   //                     SquiddyTheme.squiddyPrimary
+            //   //                 ? SquiddyTheme.squiddyPrimary[300]
+            //   //                 : SquiddyTheme
+            //   //                     .squiddySecondary[300],
+            //   //             title:
+            //   //                 displayFormat.format(cMonth.begin),
+            //   //             total:
+            //   //                 '${cMonth.totalConsumption.toStringAsFixed(2)}kWh',
+            //   //           ));
+            //   //     }, childCount: months.length),
+            //   //     gridDelegate:
+            //   //         SliverGridDelegateWithFixedCrossAxisCount(
+            //   //             crossAxisCount: 2)),
+            // ),
+            //working
+            SliverList(
+              delegate: SliverChildBuilderDelegate((context, index) {
+                var cMonth = months[index];
+                var displayFormat = DateFormat.yMMM();
+
+                var urlMonth = urlDate.format(cMonth.begin);
+                var monthDays = cMonth.days;
+
+                Map<String, num> data = {};
+                monthDays.forEach(
+                    (d) => data[d.date.day.toString()] = d.totalConsumption);
+                return IntrinsicHeight(
+                  child: Container(
+                    child: SquiddyCard(
+                      graphData: data,
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            SlideLeftRoute(
+                                name: '/monthDays/$urlMonth',
+                                page: Provider(
+                                    create: (_) => cMonth,
+                                    child: MonthDaysPage())));
+                      },
+                      color: cardColors[index],
+                      inkColor: cardColors[index] == SquiddyTheme.squiddyPrimary
+                          ? SquiddyTheme.squiddyPrimary[300]
+                          : SquiddyTheme.squiddySecondary[300],
+                      title: displayFormat.format(cMonth.begin),
+                      total: '${cMonth.totalConsumption.toStringAsFixed(2)}kWh',
+                    ),
+                  ),
+                );
+              }, childCount: months.length),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  // SliverChildDelegate getChildDelegate(
+  //     {int maxWidth,
+  //     int maxHeight,
+  //     List<EnergyMonth> months,
+  //     List<MaterialAccentColor> cardColors}) {
+  //   return;
+  // }
 }

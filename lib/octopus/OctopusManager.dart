@@ -16,7 +16,7 @@ class OctopusManager extends ChangeNotifier {
   String apiKey;
   OctopusEneryClient octopusEnergyClient;
   EnergyAccount account;
-  List<EnergyMonth> monthConsumption = List();
+  List<EnergyMonth> monthConsumption = [];
 
   OctopusManager(
       {this.octopusEnergyClient,
@@ -111,7 +111,7 @@ class OctopusManager extends ChangeNotifier {
       logger.logError(exception, stackTrace);
     }
 
-    return List();
+    return [];
   }
 
   retryLogin() {
@@ -124,7 +124,7 @@ class OctopusManager extends ChangeNotifier {
 
   resetState() {
     initialised = false;
-    monthConsumption = List();
+    monthConsumption = [];
 
     notifyListeners();
   }
