@@ -80,7 +80,7 @@ class _MonthsOverviewState extends State<MonthsOverview> {
   @override
   Widget build(BuildContext context) {
     var months = Provider.of<List<EnergyMonth>>(context);
-
+    print('months length: ${months.length}');
     //always ensure the oldest card is secondary colour
     var cardIsPink = false;
     var cardColors = months.reversed

@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/widgets.dart';
+import 'package:ordered_set/comparing.dart';
+import 'package:ordered_set/ordered_set.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:squiddy/octopus/octopusEnergyClient.dart';
 
@@ -16,7 +18,9 @@ class OctopusManager extends ChangeNotifier {
   String apiKey;
   OctopusEneryClient octopusEnergyClient;
   EnergyAccount account;
-  List<EnergyMonth> monthConsumption = [];
+  var consumption =
+      OrderedSet<EnergyConsumption>(Comparing.on((c) => c.intervalStart));
+  // List<EnergyMonth> monthConsumption = [];
 
   OctopusManager(
       {this.octopusEnergyClient,
@@ -41,6 +45,12 @@ class OctopusManager extends ChangeNotifier {
     }
   }
 
+  List<EnergyMonth> get monthConsumption {
+    var m =
+        OctopusEneryClient.getEnergyMonthsFromConsumption(consumption.toList());
+    return m;
+  }
+
   Future<void> initData(
       {@required String apiKey,
       @required String accountId,
@@ -63,9 +73,18 @@ class OctopusManager extends ChangeNotifier {
 
     try {
       print('Initing data');
-      monthConsumption = await octopusEnergyClient
+      //get consumption for previous day
+
+      var data = await octopusEnergyClient
           .getConsumtion(apiKey, meterPoint, meter)
           .timeout(Duration(seconds: timeoutDuration));
+      consumption.addAll(data);
+      print('Got data');
+      var test = consumption.toList();
+      print('Data to list');
+
+      // var m = OctopusEneryClient.getEnergyMonthsFromConsumption(consumption);
+      // monthConsumption = m;
     } on TimeoutException catch (_) {
       timeoutError = true;
     } catch (exception, stackTrace) {
@@ -75,7 +94,7 @@ class OctopusManager extends ChangeNotifier {
       );
     }
 
-    if (monthConsumption == null || monthConsumption.length == 0) {
+    if (consumption == null || consumption.length == 0) {
       errorGettingData = true;
     } else {
       initialised = true;
@@ -100,6 +119,8 @@ class OctopusManager extends ChangeNotifier {
     return null;
   }
 
+  Future<List<EnergyConsumption>> getConsumptionForRange() {}
+
   Future<List<EnergyConsumption>> getConsumptionLast30Days(
       String apiKey, String meterPoint, String meter) async {
     try {
@@ -115,7 +136,8 @@ class OctopusManager extends ChangeNotifier {
   }
 
   retryLogin() {
-    monthConsumption = null;
+    // monthConsumption = null;
+    consumption = null;
     initialised = false;
     errorGettingData = false;
     timeoutError = false;
@@ -124,7 +146,8 @@ class OctopusManager extends ChangeNotifier {
 
   resetState() {
     initialised = false;
-    monthConsumption = [];
+    consumption =
+        OrderedSet<EnergyConsumption>(Comparing.on((c) => c.intervalStart));
 
     notifyListeners();
   }

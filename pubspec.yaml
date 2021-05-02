@@ -37,6 +37,7 @@ dependencies:
   pull_to_refresh: 1.6.4
   url_launcher: ^6.0.2
   shimmer: ^1.1.2
+  ordered_set: ^3.0.0
 
 dev_dependencies:
   flutter_test:

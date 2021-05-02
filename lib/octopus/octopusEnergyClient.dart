@@ -58,8 +58,9 @@ class OctopusEneryClient {
     var now = DateTime.now();
     var lastMonth = now.subtract(Duration(days: 30));
 
-    List<EnergyMonth> months = await getConsumtion(apiKey, meterPoint, meter,
+    var consumption = await getConsumtion(apiKey, meterPoint, meter,
         periodFrom: lastMonth, periodTo: now);
+    var months = getEnergyMonthsFromConsumption(consumption.toList());
 
     //potentially could be null, init to empty list if this is the case
     if (months == null) {
@@ -72,7 +73,7 @@ class OctopusEneryClient {
         .toList();
   }
 
-  Future<List<EnergyMonth>> getConsumtion(
+  Future<Set<EnergyConsumption>> getConsumtion(
       String apiKey, String meterPoint, String meter,
       {DateTime periodFrom, DateTime periodTo}) async {
     var fm = DateFormat('yyyy-MM-ddTHH:mm:ss');
@@ -92,10 +93,22 @@ class OctopusEneryClient {
     }
 
     if (response != null && response.statusCode == 200) {
-      return getEnergyMonthsFromJsonString(response.body);
+      List<dynamic> consumptionJson = jsonDecode(response.body)['results'];
+
+      //there is a chance here that results could be null,
+      //for example if the meter is valid but there are no readings available
+      //if results is null we probably want to return null and treat as an error
+      if (consumptionJson == null || consumptionJson.length == 0) {
+        return null;
+      }
+
+      var consumption =
+          consumptionJson.map((c) => EnergyConsumption.fromJson(c)).toSet();
+      return consumption;
+      // return getEnergyMonthsFromJsonString(response.body);
     }
 
-    return null;
+    return Set();
   }
 
   static List<EnergyMonth> getEnergyMonthsFromJsonString(String json) {
@@ -109,9 +122,9 @@ class OctopusEneryClient {
     }
 
     var consumption =
-        consumptionJson.map((c) => EnergyConsumption.fromJson(c)).toList();
+        consumptionJson.map((c) => EnergyConsumption.fromJson(c)).toSet();
 
-    var energyMonths = getEnergyMonthsFromConsumption(consumption);
+    var energyMonths = getEnergyMonthsFromConsumption(consumption.toList());
 
     return energyMonths;
   }
@@ -145,21 +158,20 @@ class OctopusEneryClient {
       //assume consumption in reverse order, so flip to go from the earliest date first
       List<EnergyMonth> energyMonths = [];
 
-      var consump = consumption.reversed.toList();
-
+      // var consump = consumption.toList().reversed.toList();
       var currentEnergyMonth = EnergyMonth();
       energyMonths.add(currentEnergyMonth);
       var currentEnergyDay = EnergyDay();
-      currentEnergyDay.date = consump[0].intervalStart;
-      currentEnergyMonth.begin = consump[0].intervalStart;
+      currentEnergyDay.date = consumption[0].intervalStart;
+      currentEnergyMonth.begin = consumption[0].intervalStart;
       currentEnergyMonth.days.add(currentEnergyDay);
 
       var currentDate = currentEnergyMonth.begin;
       var currentDay = currentEnergyMonth.begin.day;
       var currentMonth = currentEnergyMonth.begin.month;
-      consump.removeRange(0, 0);
+      consumption.removeRange(0, 0);
 
-      for (var c in consump) {
+      for (var c in consumption) {
         var start = c.intervalStart;
         // print(start);
 
