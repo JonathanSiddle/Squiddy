@@ -22,6 +22,10 @@ class EnergyMonth {
         .toList();
   }
 
+  bool get missingReadings {
+    return days.every((d) => d.validreading);
+  }
+
   num get readings {
     num total = 0;
 

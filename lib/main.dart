@@ -6,11 +6,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'
     show PlatformException, SystemUiOverlayStyle, rootBundle;
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:squiddy/Theme/SquiddyTheme.dart';
+import 'package:squiddy/octopus/EnergyConsumptionRepo.dart';
 import 'package:squiddy/octopus/OctopusManager.dart';
 import 'package:squiddy/octopus/dataClasses/ElectricityAccount.dart';
+import 'package:squiddy/octopus/dataClasses/EnergyConsumption.dart';
 import 'package:squiddy/octopus/dataClasses/EnergyMonth.dart';
 import 'package:squiddy/octopus/secureStore.dart';
 import 'package:squiddy/octopus/settingsManager.dart';
@@ -21,6 +25,13 @@ import '.env.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  //init hive data store
+  await Hive.initFlutter();
+  Hive.registerAdapter(EnergyConsumptionAdapter());
+  var readingBox =
+      await Hive.openBox<EnergyConsumption>(SettingsManager.READING_BOX);
+
+  //init error logging
   var sentryURL = environment['sentryURL'] ?? ' ';
 
   final canAuthenticate = await BiometricStorage().canAuthenticate();
@@ -39,7 +50,8 @@ void main() async {
       localStore: SecureStore(storageFile: secureData),
       settingsMap: rawData == null ? {} : json.decode(rawData));
 
-  var octoManager = OctopusManager(logErrors: true);
+  var octoManager = OctopusManager(
+      repo: EnergyConsumptionHiveRepo(store: readingBox), logErrors: true);
   // await settingsManager.loadSettings();
   if (settingsManager.accountDetailsSet) {
     //if previously save details, assume they have been validated

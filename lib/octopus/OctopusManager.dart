@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:ordered_set/comparing.dart';
 import 'package:ordered_set/ordered_set.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:squiddy/octopus/EnergyConsumptionRepo.dart';
 import 'package:squiddy/octopus/dataClasses/AgilePrice.dart';
 import 'package:squiddy/octopus/dataClasses/ElectricityAccount.dart';
 import 'package:squiddy/octopus/dataClasses/EnergyConsumption.dart';
@@ -11,6 +12,7 @@ import 'package:squiddy/octopus/dataClasses/EnergyMonth.dart';
 import 'package:squiddy/octopus/octopusEnergyClient.dart';
 
 class OctopusManager extends ChangeNotifier {
+  final EnergyConsumptionRepo repo;
   var timeoutDuration = 90;
   var initialised = false;
   var loadingData = false;
@@ -28,7 +30,8 @@ class OctopusManager extends ChangeNotifier {
   // List<EnergyMonth> monthConsumption = [];
 
   OctopusManager(
-      {this.octopusEnergyClient,
+      {this.repo,
+      this.octopusEnergyClient,
       this.timeoutDuration,
       DateTime Function() inDateTimeFetcher,
       this.logErrors = false,
@@ -79,6 +82,13 @@ class OctopusManager extends ChangeNotifier {
       logger.logError(exception, stackTrace);
     }
 
+    //get any locally stored readings
+    var readings = repo.getAll();
+    consumption.addAll(readings);
+    //convert to months to make checking for
+    //missing readings easier
+    var monthsCache = monthConsumption;
+
     try {
       print('Initing data');
       //get consumption for previous day
@@ -87,21 +97,33 @@ class OctopusManager extends ChangeNotifier {
       var currentDate = currentDateFetcher();
       //some days in the current month to get data for
       if (currentDate.day > 1) {
-        //get consumption from the current day to the very start of the current month
-        // var previousDay = DateTime(
-        //     currentDate.year, currentDate.month, currentDate.day - 1, 00, 00);
-        var beginningOfCurrentMonth =
-            DateTime(currentDate.year, currentDate.month, 0, 00, 00);
-        print('Calculated months');
-        var data = await octopusEnergyClient
-            .getConsumtion(apiKey, meterPoint, meter,
-                periodFrom: beginningOfCurrentMonth)
-            .timeout(Duration(seconds: timeoutDuration));
-        consumption.addAll(data);
-        initialised = true;
-        notifyListeners();
+        var latestMonthReading = monthsCache[0].begin;
+        var expectedReadingCount = currentDate.day - 1;
+
+        if (latestMonthReading.year != currentDate.year &&
+            latestMonthReading.month != currentDate.month &&
+            monthsCache[0].days.length != expectedReadingCount &&
+            monthsCache[0].missingReadings) {
+          // get consumption from the current day to the very start of the current month
+
+          var beginningOfCurrentMonth =
+              DateTime(currentDate.year, currentDate.month, 0, 00, 00);
+          print('Calculated months');
+          var data = await octopusEnergyClient
+              .getConsumtion(apiKey, meterPoint, meter,
+                  periodFrom: beginningOfCurrentMonth)
+              .timeout(Duration(seconds: timeoutDuration));
+
+          consumption.addAll(data);
+          repo.saveAll(data);
+        } else {
+          //already have local data
+          initialised = true;
+          notifyListeners();
+        }
       }
 
+      // //*****get data for months */
       bool stillHaveData = true;
       while (stillHaveData) {
         stillHaveData = false;
@@ -110,22 +132,33 @@ class OctopusManager extends ChangeNotifier {
             DateTime(currentDate.year, currentDate.month, 0, 00, 00);
         var beginningOfLastMonth =
             DateTime(endOfLastMonth.year, endOfLastMonth.month, 1, 00, 00);
-        //request readings
-        var data = await octopusEnergyClient
-            .getConsumtion(apiKey, meterPoint, meter,
-                periodFrom: beginningOfLastMonth, periodTo: endOfLastMonth)
-            .timeout(Duration(seconds: timeoutDuration));
-        if (data != null && data.length > 0) {
-          consumption.addAll(data);
+        var month = monthsCache.firstWhere(
+            (m) =>
+                m.begin.year == beginningOfLastMonth.year &&
+                m.begin.month == beginningOfLastMonth.month,
+            orElse: () => null);
+
+        if (month == null || month.missingReadings) {
+          //request readings
+          var data = await octopusEnergyClient
+              .getConsumtion(apiKey, meterPoint, meter,
+                  periodFrom: beginningOfLastMonth, periodTo: endOfLastMonth)
+              .timeout(Duration(seconds: timeoutDuration));
+          if (data != null && data.length > 0) {
+            consumption.addAll(data);
+            repo.saveAll(data);
+            stillHaveData = true;
+          }
+        } else {
+          //found local data
           stillHaveData = true;
         }
-
-        //update stillHave Data
 
         //update current month
         currentDate = beginningOfLastMonth;
         notifyListeners();
       }
+      // //*****get data for months */
 
       // var data = await octopusEnergyClient
       //     .getConsumtion(apiKey, meterPoint, meter)
@@ -169,8 +202,6 @@ class OctopusManager extends ChangeNotifier {
     }
     return null;
   }
-
-  Future<List<EnergyConsumption>> getConsumptionForRange() {}
 
   Future<List<EnergyConsumption>> getConsumptionLast30Days(
       String apiKey, String meterPoint, String meter) async {
