@@ -5,6 +5,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:squiddy/octopus/secureStore.dart';
 
 class SettingsManager extends ChangeNotifier {
+  static const String READING_box = 'readings';
   //Keys
   static const String ACTIVE_AGILE_TARIFF_KEY = 'activeAgileTariff';
   static const String SELECTED_AGILE_REGION_KEY = 'selectedAgileRegion';

@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:squiddy/Charts/monthSummary.dart';
 import 'package:squiddy/Theme/SquiddyTheme.dart';
 import 'package:squiddy/monthDisplayCard.dart';
-import 'package:squiddy/octopus/octopusEnergyClient.dart';
+import 'package:squiddy/octopus/dataClasses/EnergyMonth.dart';
 
 class MonthDaysPage extends StatelessWidget {
   final headingDateFormat = DateFormat('MMM yyyy');

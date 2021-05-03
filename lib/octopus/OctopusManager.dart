@@ -4,11 +4,16 @@ import 'package:flutter/widgets.dart';
 import 'package:ordered_set/comparing.dart';
 import 'package:ordered_set/ordered_set.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:squiddy/octopus/dataClasses/AgilePrice.dart';
+import 'package:squiddy/octopus/dataClasses/ElectricityAccount.dart';
+import 'package:squiddy/octopus/dataClasses/EnergyConsumption.dart';
+import 'package:squiddy/octopus/dataClasses/EnergyMonth.dart';
 import 'package:squiddy/octopus/octopusEnergyClient.dart';
 
 class OctopusManager extends ChangeNotifier {
   var timeoutDuration = 90;
   var initialised = false;
+  var loadingData = false;
   var errorGettingData = false;
   var timeoutError = false;
   DateTime Function() dateTimeFetcher = () => DateTime.now();
@@ -56,7 +61,10 @@ class OctopusManager extends ChangeNotifier {
       @required String accountId,
       @required String meterPoint,
       @required String meter,
-      void Function(EnergyAccount) updateAccountSettings}) async {
+      void Function(EnergyAccount) updateAccountSettings,
+      DateTime Function() currentDateFetcher =
+          DefaultCurrentDateTimeFetcher}) async {
+    loadingData = true;
     initialised = false;
     errorGettingData = false;
     timeoutError = false;
@@ -74,20 +82,63 @@ class OctopusManager extends ChangeNotifier {
     try {
       print('Initing data');
       //get consumption for previous day
+      // var date = DateTime(2021, 5, 01, 00, 00, 00);
+      // var date2 = DateTime(2021, 5, 01 - 1, 00, 00, 00);
+      var currentDate = currentDateFetcher();
+      //some days in the current month to get data for
+      if (currentDate.day > 1) {
+        //get consumption from the current day to the very start of the current month
+        // var previousDay = DateTime(
+        //     currentDate.year, currentDate.month, currentDate.day - 1, 00, 00);
+        var beginningOfCurrentMonth =
+            DateTime(currentDate.year, currentDate.month, 0, 00, 00);
+        print('Calculated months');
+        var data = await octopusEnergyClient
+            .getConsumtion(apiKey, meterPoint, meter,
+                periodFrom: beginningOfCurrentMonth)
+            .timeout(Duration(seconds: timeoutDuration));
+        consumption.addAll(data);
+        initialised = true;
+        notifyListeners();
+      }
 
-      var data = await octopusEnergyClient
-          .getConsumtion(apiKey, meterPoint, meter)
-          .timeout(Duration(seconds: timeoutDuration));
-      consumption.addAll(data);
-      print('Got data');
-      var test = consumption.toList();
-      print('Data to list');
+      bool stillHaveData = true;
+      while (stillHaveData) {
+        stillHaveData = false;
+
+        var endOfLastMonth =
+            DateTime(currentDate.year, currentDate.month, 0, 00, 00);
+        var beginningOfLastMonth =
+            DateTime(endOfLastMonth.year, endOfLastMonth.month, 1, 00, 00);
+        //request readings
+        var data = await octopusEnergyClient
+            .getConsumtion(apiKey, meterPoint, meter,
+                periodFrom: beginningOfLastMonth, periodTo: endOfLastMonth)
+            .timeout(Duration(seconds: timeoutDuration));
+        if (data != null && data.length > 0) {
+          consumption.addAll(data);
+          stillHaveData = true;
+        }
+
+        //update stillHave Data
+
+        //update current month
+        currentDate = beginningOfLastMonth;
+        notifyListeners();
+      }
+
+      // var data = await octopusEnergyClient
+      //     .getConsumtion(apiKey, meterPoint, meter)
+      //     .timeout(Duration(seconds: timeoutDuration));
+      // consumption.addAll(data);
+      // print('Got data');
 
       // var m = OctopusEneryClient.getEnergyMonthsFromConsumption(consumption);
       // monthConsumption = m;
     } on TimeoutException catch (_) {
       timeoutError = true;
     } catch (exception, stackTrace) {
+      loadingData = false;
       Sentry.captureException(
         exception,
         stackTrace: stackTrace,
@@ -102,7 +153,7 @@ class OctopusManager extends ChangeNotifier {
 
     // await Future.delayed(
     //     const Duration(seconds: 5), () => print("Finished delay"));
-
+    loadingData = false;
     notifyListeners();
     // return 'Got data';
   }
@@ -192,4 +243,8 @@ class DefaultLogger implements SquiddyLogger {
       return false;
     }
   }
+}
+
+DateTime DefaultCurrentDateTimeFetcher() {
+  return DateTime.now();
 }

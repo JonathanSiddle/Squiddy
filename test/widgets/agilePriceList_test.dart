@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:provider/provider.dart';
 import 'package:squiddy/octopus/OctopusManager.dart';
+import 'package:squiddy/octopus/dataClasses/AgilePrice.dart';
 import 'package:squiddy/octopus/octopusEnergyClient.dart';
 import 'package:squiddy/octopus/secureStore.dart';
 import 'package:squiddy/octopus/settingsManager.dart';

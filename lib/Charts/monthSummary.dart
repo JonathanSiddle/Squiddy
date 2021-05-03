@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:squiddy/Charts/octoLineChart.dart';
-import 'package:squiddy/octopus/octopusEnergyClient.dart';
+import 'package:squiddy/octopus/dataClasses/EnergyMonth.dart';
 
 class MonthSummary extends StatelessWidget {
   @override

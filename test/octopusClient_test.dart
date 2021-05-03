@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:squiddy/octopus/octopusEnergyClient.dart';
+import 'package:squiddy/octopus/dataClasses/ElectricityAccount.dart';
+import 'package:squiddy/octopus/dataClasses/ElectricityAgreement.dart';
+import 'package:squiddy/octopus/dataClasses/ElectricityMeterPoint.dart';
 
 main() {
   group('Octopus Client tests', () {

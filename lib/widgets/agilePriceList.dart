@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:squiddy/octopus/OctopusManager.dart';
-import 'package:squiddy/octopus/octopusEnergyClient.dart';
+import 'package:squiddy/octopus/dataClasses/AgilePrice.dart';
 import 'package:squiddy/octopus/settingsManager.dart';
 import 'package:squiddy/widgets/agilePriceCard.dart';
 

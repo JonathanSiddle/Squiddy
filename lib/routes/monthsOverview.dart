@@ -8,7 +8,8 @@ import 'package:squiddy/Charts/overviewSummary.dart';
 import 'package:squiddy/Theme/SquiddyTheme.dart';
 import 'package:squiddy/Util/SlideRoute.dart';
 import 'package:squiddy/octopus/OctopusManager.dart';
-import 'package:squiddy/octopus/octopusEnergyClient.dart';
+import 'package:squiddy/octopus/dataClasses/ElectricityAccount.dart';
+import 'package:squiddy/octopus/dataClasses/EnergyMonth.dart';
 import 'package:squiddy/octopus/settingsManager.dart';
 import 'package:squiddy/routes/monthDaysPage.dart';
 import 'package:squiddy/routes/settingPage.dart';
@@ -81,22 +82,6 @@ class _MonthsOverviewState extends State<MonthsOverview> {
   Widget build(BuildContext context) {
     var months = Provider.of<List<EnergyMonth>>(context);
     print('months length: ${months.length}');
-    //always ensure the oldest card is secondary colour
-    var cardIsPink = false;
-    var cardColors = months.reversed
-        .toList()
-        .map((m) {
-          if (cardIsPink) {
-            cardIsPink = !cardIsPink;
-            return SquiddyTheme.squiddyPrimary;
-          } else {
-            cardIsPink = !cardIsPink;
-            return SquiddyTheme.squiddySecondary;
-          }
-        })
-        .toList()
-        .reversed
-        .toList();
 
     return months == null && !octoManager.errorGettingData
         ? Center(child: CircularProgressIndicator())
@@ -186,19 +171,14 @@ class _MonthsOverviewState extends State<MonthsOverview> {
                  *Main area section if all goes well...
                 ***********************/
                 : ResponsiveWidget(
-                    smallScreen: getSmallScreenView(months, cardColors),
-                    mediumScreen:
-                        getLargeScreenView(months, cardColors, gridSize: 2),
-                    largeScreen:
-                        getLargeScreenView(months, cardColors, gridSize: 3),
-                    exLargeScreen:
-                        getLargeScreenView(months, cardColors, gridSize: 4),
+                    smallScreen: getSmallScreenView(months),
+                    mediumScreen: getLargeScreenView(months, gridSize: 2),
+                    largeScreen: getLargeScreenView(months, gridSize: 3),
+                    exLargeScreen: getLargeScreenView(months, gridSize: 4),
                   );
   }
 
-  Widget getLargeScreenView(
-      List<EnergyMonth> months, List<MaterialAccentColor> cardColors,
-      {int gridSize = 2}) {
+  Widget getLargeScreenView(List<EnergyMonth> months, {int gridSize = 2}) {
     return SafeArea(
       child: SmartRefresher(
         enablePullDown: true,
@@ -219,6 +199,12 @@ class _MonthsOverviewState extends State<MonthsOverview> {
                             'Overview',
                             style: TextStyle(fontSize: 48),
                           ),
+                          octoManager.loadingData
+                              ? Padding(
+                                  padding: const EdgeInsets.only(left: 10.0),
+                                  child: CircularProgressIndicator(),
+                                )
+                              : Container(),
                           Expanded(child: Container()),
                           IconButton(
                               icon: Icon(
@@ -264,85 +250,6 @@ class _MonthsOverviewState extends State<MonthsOverview> {
                 ),
               ]),
             ),
-            // ResponsiveWidget(
-            //   smallScreen: SliverList(
-            //     delegate:
-            //         SliverChildBuilderDelegate((context, index) {
-            //       var cMonth = months[index];
-            //       var displayFormat = DateFormat.yMMM();
-
-            //       var urlMonth = urlDate.format(cMonth.begin);
-            //       var monthDays = cMonth.days;
-
-            //       Map<String, num> data = {};
-            //       monthDays.forEach((d) =>
-            //           data[d.date.day.toString()] =
-            //               d.totalConsumption);
-            //       return SquiddyCard(
-            //         graphData: data,
-            //         onTap: () {
-            //           Navigator.push(
-            //               context,
-            //               SlideLeftRoute(
-            //                   name: '/monthDays/$urlMonth',
-            //                   page: Provider(
-            //                       create: (_) => cMonth,
-            //                       child: MonthDaysPage())));
-            //         },
-            //         color: cardColors[index],
-            //         inkColor: cardColors[index] ==
-            //                 SquiddyTheme.squiddyPrimary
-            //             ? SquiddyTheme.squiddyPrimary[300]
-            //             : SquiddyTheme.squiddySecondary[300],
-            //         title: displayFormat.format(cMonth.begin),
-            //         total:
-            //             '${cMonth.totalConsumption.toStringAsFixed(2)}kWh',
-            //       );
-            //     }, childCount: months.length),
-            //   ),
-            //   // largeScreen: SliverGrid(
-            //   //     delegate: SliverChildBuilderDelegate(
-            //   //         (context, index) {
-            //   //       var cMonth = months[index];
-            //   //       var displayFormat = DateFormat.yMMM();
-
-            //   //       var urlMonth = urlDate.format(cMonth.begin);
-            //   //       var monthDays = cMonth.days;
-
-            //   //       Map<String, num> data = {};
-            //   //       monthDays.forEach((d) =>
-            //   //           data[d.date.day.toString()] =
-            //   //               d.totalConsumption);
-            //   //       return Container(
-            //   //           constraints: BoxConstraints(
-            //   //               maxWidth: 200, maxHeight: 200),
-            //   //           child: SquiddyCard(
-            //   //             graphData: data,
-            //   //             onTap: () {
-            //   //               Navigator.push(
-            //   //                   context,
-            //   //                   SlideLeftRoute(
-            //   //                       name: '/monthDays/$urlMonth',
-            //   //                       page: Provider(
-            //   //                           create: (_) => cMonth,
-            //   //                           child: MonthDaysPage())));
-            //   //             },
-            //   //             color: cardColors[index],
-            //   //             inkColor: cardColors[index] ==
-            //   //                     SquiddyTheme.squiddyPrimary
-            //   //                 ? SquiddyTheme.squiddyPrimary[300]
-            //   //                 : SquiddyTheme
-            //   //                     .squiddySecondary[300],
-            //   //             title:
-            //   //                 displayFormat.format(cMonth.begin),
-            //   //             total:
-            //   //                 '${cMonth.totalConsumption.toStringAsFixed(2)}kWh',
-            //   //           ));
-            //   //     }, childCount: months.length),
-            //   //     gridDelegate:
-            //   //         SliverGridDelegateWithFixedCrossAxisCount(
-            //   //             crossAxisCount: 2)),
-            // ),
             SliverGrid(
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: gridSize, childAspectRatio: 21 / 8),
@@ -369,10 +276,8 @@ class _MonthsOverviewState extends State<MonthsOverview> {
                                     create: (_) => cMonth,
                                     child: MonthDaysPage())));
                       },
-                      color: cardColors[index],
-                      inkColor: cardColors[index] == SquiddyTheme.squiddyPrimary
-                          ? SquiddyTheme.squiddyPrimary[300]
-                          : SquiddyTheme.squiddySecondary[300],
+                      color: SquiddyTheme.squiddyPrimary,
+                      inkColor: SquiddyTheme.squiddyPrimary[300],
                       title: displayFormat.format(cMonth.begin),
                       total: '${cMonth.totalConsumption.toStringAsFixed(2)}kWh',
                     ),
@@ -380,50 +285,13 @@ class _MonthsOverviewState extends State<MonthsOverview> {
                 );
               }, childCount: months.length),
             ),
-            //working
-            // SliverList(
-            //   delegate:
-            //       SliverChildBuilderDelegate((context, index) {
-            //     var cMonth = months[index];
-            //     var displayFormat = DateFormat.yMMM();
-
-            //     var urlMonth = urlDate.format(cMonth.begin);
-            //     var monthDays = cMonth.days;
-
-            //     Map<String, num> data = {};
-            //     monthDays.forEach((d) =>
-            //         data[d.date.day.toString()] =
-            //             d.totalConsumption);
-            //     return SquiddyCard(
-            //       graphData: data,
-            //       onTap: () {
-            //         Navigator.push(
-            //             context,
-            //             SlideLeftRoute(
-            //                 name: '/monthDays/$urlMonth',
-            //                 page: Provider(
-            //                     create: (_) => cMonth,
-            //                     child: MonthDaysPage())));
-            //       },
-            //       color: cardColors[index],
-            //       inkColor: cardColors[index] ==
-            //               SquiddyTheme.squiddyPrimary
-            //           ? SquiddyTheme.squiddyPrimary[300]
-            //           : SquiddyTheme.squiddySecondary[300],
-            //       title: displayFormat.format(cMonth.begin),
-            //       total:
-            //           '${cMonth.totalConsumption.toStringAsFixed(2)}kWh',
-            //     );
-            //   }, childCount: months.length),
-            // )
           ],
         ),
       ),
     );
   }
 
-  Widget getSmallScreenView(
-      List<EnergyMonth> months, List<MaterialAccentColor> cardColors) {
+  Widget getSmallScreenView(List<EnergyMonth> months) {
     return SafeArea(
       child: SmartRefresher(
         enablePullDown: true,
@@ -444,6 +312,12 @@ class _MonthsOverviewState extends State<MonthsOverview> {
                             'Overview',
                             style: TextStyle(fontSize: 48),
                           ),
+                          octoManager.loadingData
+                              ? Padding(
+                                  padding: const EdgeInsets.only(left: 10.0),
+                                  child: CircularProgressIndicator(),
+                                )
+                              : Container(),
                           Expanded(child: Container()),
                           IconButton(
                               icon: Icon(
@@ -489,85 +363,6 @@ class _MonthsOverviewState extends State<MonthsOverview> {
                 ),
               ]),
             ),
-            // ResponsiveWidget(
-            //   smallScreen: SliverList(
-            //     delegate:
-            //         SliverChildBuilderDelegate((context, index) {
-            //       var cMonth = months[index];
-            //       var displayFormat = DateFormat.yMMM();
-
-            //       var urlMonth = urlDate.format(cMonth.begin);
-            //       var monthDays = cMonth.days;
-
-            //       Map<String, num> data = {};
-            //       monthDays.forEach((d) =>
-            //           data[d.date.day.toString()] =
-            //               d.totalConsumption);
-            //       return SquiddyCard(
-            //         graphData: data,
-            //         onTap: () {
-            //           Navigator.push(
-            //               context,
-            //               SlideLeftRoute(
-            //                   name: '/monthDays/$urlMonth',
-            //                   page: Provider(
-            //                       create: (_) => cMonth,
-            //                       child: MonthDaysPage())));
-            //         },
-            //         color: cardColors[index],
-            //         inkColor: cardColors[index] ==
-            //                 SquiddyTheme.squiddyPrimary
-            //             ? SquiddyTheme.squiddyPrimary[300]
-            //             : SquiddyTheme.squiddySecondary[300],
-            //         title: displayFormat.format(cMonth.begin),
-            //         total:
-            //             '${cMonth.totalConsumption.toStringAsFixed(2)}kWh',
-            //       );
-            //     }, childCount: months.length),
-            //   ),
-            //   // largeScreen: SliverGrid(
-            //   //     delegate: SliverChildBuilderDelegate(
-            //   //         (context, index) {
-            //   //       var cMonth = months[index];
-            //   //       var displayFormat = DateFormat.yMMM();
-
-            //   //       var urlMonth = urlDate.format(cMonth.begin);
-            //   //       var monthDays = cMonth.days;
-
-            //   //       Map<String, num> data = {};
-            //   //       monthDays.forEach((d) =>
-            //   //           data[d.date.day.toString()] =
-            //   //               d.totalConsumption);
-            //   //       return Container(
-            //   //           constraints: BoxConstraints(
-            //   //               maxWidth: 200, maxHeight: 200),
-            //   //           child: SquiddyCard(
-            //   //             graphData: data,
-            //   //             onTap: () {
-            //   //               Navigator.push(
-            //   //                   context,
-            //   //                   SlideLeftRoute(
-            //   //                       name: '/monthDays/$urlMonth',
-            //   //                       page: Provider(
-            //   //                           create: (_) => cMonth,
-            //   //                           child: MonthDaysPage())));
-            //   //             },
-            //   //             color: cardColors[index],
-            //   //             inkColor: cardColors[index] ==
-            //   //                     SquiddyTheme.squiddyPrimary
-            //   //                 ? SquiddyTheme.squiddyPrimary[300]
-            //   //                 : SquiddyTheme
-            //   //                     .squiddySecondary[300],
-            //   //             title:
-            //   //                 displayFormat.format(cMonth.begin),
-            //   //             total:
-            //   //                 '${cMonth.totalConsumption.toStringAsFixed(2)}kWh',
-            //   //           ));
-            //   //     }, childCount: months.length),
-            //   //     gridDelegate:
-            //   //         SliverGridDelegateWithFixedCrossAxisCount(
-            //   //             crossAxisCount: 2)),
-            // ),
             //working
             SliverList(
               delegate: SliverChildBuilderDelegate((context, index) {
@@ -593,10 +388,8 @@ class _MonthsOverviewState extends State<MonthsOverview> {
                                     create: (_) => cMonth,
                                     child: MonthDaysPage())));
                       },
-                      color: cardColors[index],
-                      inkColor: cardColors[index] == SquiddyTheme.squiddyPrimary
-                          ? SquiddyTheme.squiddyPrimary[300]
-                          : SquiddyTheme.squiddySecondary[300],
+                      color: SquiddyTheme.squiddyPrimary,
+                      inkColor: SquiddyTheme.squiddyPrimary[300],
                       title: displayFormat.format(cMonth.begin),
                       total: '${cMonth.totalConsumption.toStringAsFixed(2)}kWh',
                     ),
@@ -609,12 +402,4 @@ class _MonthsOverviewState extends State<MonthsOverview> {
       ),
     );
   }
-
-  // SliverChildDelegate getChildDelegate(
-  //     {int maxWidth,
-  //     int maxHeight,
-  //     List<EnergyMonth> months,
-  //     List<MaterialAccentColor> cardColors}) {
-  //   return;
-  // }
 }

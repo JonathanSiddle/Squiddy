@@ -176,19 +176,19 @@ code_sign_if_enabled() {
 
 if [[ "$CONFIGURATION" == "Debug" ]]; then
   install_framework "${BUILT_PRODUCTS_DIR}/biometric_storage/biometric_storage.framework"
-  install_framework "${BUILT_PRODUCTS_DIR}/package_info/package_info.framework"
+  install_framework "${BUILT_PRODUCTS_DIR}/package_info_plus_macos/package_info_plus_macos.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/shared_preferences_macos/shared_preferences_macos.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/url_launcher_macos/url_launcher_macos.framework"
 fi
 if [[ "$CONFIGURATION" == "Profile" ]]; then
   install_framework "${BUILT_PRODUCTS_DIR}/biometric_storage/biometric_storage.framework"
-  install_framework "${BUILT_PRODUCTS_DIR}/package_info/package_info.framework"
+  install_framework "${BUILT_PRODUCTS_DIR}/package_info_plus_macos/package_info_plus_macos.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/shared_preferences_macos/shared_preferences_macos.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/url_launcher_macos/url_launcher_macos.framework"
 fi
 if [[ "$CONFIGURATION" == "Release" ]]; then
   install_framework "${BUILT_PRODUCTS_DIR}/biometric_storage/biometric_storage.framework"
-  install_framework "${BUILT_PRODUCTS_DIR}/package_info/package_info.framework"
+  install_framework "${BUILT_PRODUCTS_DIR}/package_info_plus_macos/package_info_plus_macos.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/shared_preferences_macos/shared_preferences_macos.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/url_launcher_macos/url_launcher_macos.framework"
 fi

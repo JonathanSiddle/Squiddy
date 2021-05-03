@@ -3,7 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:squiddy/Charts/octoLineChart.dart';
-import 'package:squiddy/octopus/octopusEnergyClient.dart';
+import 'package:squiddy/octopus/dataClasses/EnergyMonth.dart';
 import 'package:squiddy/widgets/responsiveWidget.dart';
 
 class OverviewSummary extends StatelessWidget {
