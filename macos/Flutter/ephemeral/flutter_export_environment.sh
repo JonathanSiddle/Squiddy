@@ -1,6 +1,6 @@
 #!/bin/sh
 # This is a generated file; do not edit or check into version control.
-export "FLUTTER_ROOT=/Users/jonathansiddle/fvm/versions/2.0.0"
+export "FLUTTER_ROOT=/Users/jonathansiddle/fvm/versions/2.0.3"
 export "FLUTTER_APPLICATION_PATH=/Users/jonathansiddle/Code/Personal/squiddy"
 export "FLUTTER_TARGET=/Users/jonathansiddle/Code/Personal/squiddy/lib/main.dart"
 export "FLUTTER_BUILD_DIR=build"

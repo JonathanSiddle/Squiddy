@@ -97,13 +97,15 @@ class OctopusManager extends ChangeNotifier {
       var currentDate = currentDateFetcher();
       //some days in the current month to get data for
       if (currentDate.day > 1) {
-        var latestMonthReading = monthsCache[0].begin;
+        var latestMonthReadingDate =
+            monthsCache.length > 0 ? monthsCache[0]?.begin : null;
         var expectedReadingCount = currentDate.day - 1;
 
-        if (latestMonthReading.year != currentDate.year &&
-            latestMonthReading.month != currentDate.month &&
-            monthsCache[0].days.length != expectedReadingCount &&
-            monthsCache[0].missingReadings) {
+        if (monthsCache.length == 0 ||
+            latestMonthReadingDate?.year != currentDate.year &&
+                latestMonthReadingDate?.month != currentDate.month &&
+                monthsCache[0].days.length != expectedReadingCount &&
+                monthsCache[0].missingReadings) {
           // get consumption from the current day to the very start of the current month
 
           var beginningOfCurrentMonth =

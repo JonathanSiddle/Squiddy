@@ -14,7 +14,7 @@ description: App for interacting with and viewing data from Octopus Energy accou
 version: 1.2.2+22
 
 environment:
-  sdk: ">=2.6.0 <3.0.0"
+  sdk: ">=2.8.0 <3.0.0"
 
 dependencies:
   flutter:
