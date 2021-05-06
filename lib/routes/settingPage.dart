@@ -88,78 +88,83 @@ class _SettingsPageState extends State<SettingsPage> {
               })
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: Column(
-          children: <Widget>[
-            Text(
-              'Theme',
-              style: TextStyle(fontSize: 36),
-            ),
-            //  DropdownButton(),
-            DropdownButton<ThemeBrightness>(
-                isExpanded: true,
-                value: settingsManager.themeBrightness,
-                onChanged: (ThemeBrightness nv) {
-                  DynamicTheme.of(context).setBrightness(nv.toBrightness());
-                  nv.saveSetting(settingsManager);
-                },
-                items: ThemeBrightness.values.map((tb) {
-                  return DropdownMenuItem<ThemeBrightness>(
-                      value: tb, child: Text(tb.niceString()));
-                }).toList()),
-            Row(
-              children: [
-                Checkbox(
-                    value: true,
-                    onChanged: (b) {
-                      settingsManager.showAgilePrices = b;
-                      settingsManager.selectedAgileRegion = selectedValue;
-                      settingsManager.saveSettings();
-                    }),
-                Text('Show Agile Prices')
-              ],
-            ),
-            DropdownButton<String>(
-                isExpanded: true,
-                value: selectedValue,
-                onChanged: (v) {
-                  setState(() {
-                    selectedValue = v;
-                  });
-                  settingsManager.selectedAgileRegion = v;
-                  settingsManager.saveSettings();
-                },
-                items: agileRegions.keys.map((key) {
-                  var value = agileRegions[key];
-                  return DropdownMenuItem<String>(
-                      value: key, child: Text(value));
-                }).toList()),
-            Spacer(),
-            Row(
+      body: Center(
+        child: Container(
+          constraints: BoxConstraints(maxWidth: 600),
+          child: Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: Column(
               children: <Widget>[
-                Expanded(
-                  child: ElevatedButton(
-                    child: Text(
-                      'Logout',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    style: ButtonStyle(
-                        backgroundColor:
-                            MaterialStateProperty.all<Color>(Colors.red),
-                        elevation: MaterialStateProperty.all<double>(5)),
-                    onPressed: () async {
-                      print('Logging out');
-                      await settingsManager.cleanSettings();
-                      octoManager.resetState();
-                      //pop navigation
-                      Navigator.pop(context);
+                Text(
+                  'Theme',
+                  style: TextStyle(fontSize: 36),
+                ),
+                //  DropdownButton(),
+                DropdownButton<ThemeBrightness>(
+                    isExpanded: true,
+                    value: settingsManager.themeBrightness,
+                    onChanged: (ThemeBrightness nv) {
+                      DynamicTheme.of(context).setBrightness(nv.toBrightness());
+                      nv.saveSetting(settingsManager);
                     },
-                  ),
+                    items: ThemeBrightness.values.map((tb) {
+                      return DropdownMenuItem<ThemeBrightness>(
+                          value: tb, child: Text(tb.niceString()));
+                    }).toList()),
+                Row(
+                  children: [
+                    Checkbox(
+                        value: true,
+                        onChanged: (b) {
+                          settingsManager.showAgilePrices = b;
+                          settingsManager.selectedAgileRegion = selectedValue;
+                          settingsManager.saveSettings();
+                        }),
+                    Text('Show Agile Prices')
+                  ],
+                ),
+                DropdownButton<String>(
+                    isExpanded: true,
+                    value: selectedValue,
+                    onChanged: (v) {
+                      setState(() {
+                        selectedValue = v;
+                      });
+                      settingsManager.selectedAgileRegion = v;
+                      settingsManager.saveSettings();
+                    },
+                    items: agileRegions.keys.map((key) {
+                      var value = agileRegions[key];
+                      return DropdownMenuItem<String>(
+                          value: key, child: Text(value));
+                    }).toList()),
+                Spacer(),
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: ElevatedButton(
+                        child: Text(
+                          'Logout',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        style: ButtonStyle(
+                            backgroundColor:
+                                MaterialStateProperty.all<Color>(Colors.red),
+                            elevation: MaterialStateProperty.all<double>(5)),
+                        onPressed: () async {
+                          print('Logging out');
+                          await settingsManager.cleanSettings();
+                          octoManager.resetState();
+                          //pop navigation
+                          Navigator.pop(context);
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
+          ),
         ),
       ),
     );

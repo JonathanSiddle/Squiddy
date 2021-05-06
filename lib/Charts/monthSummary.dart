@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:squiddy/Charts/octoLineChart.dart';
 import 'package:squiddy/octopus/dataClasses/EnergyMonth.dart';
+import 'package:squiddy/widgets/responsiveWidget.dart';
 
 class MonthSummary extends StatelessWidget {
   @override
@@ -24,10 +25,19 @@ class MonthSummary extends StatelessWidget {
             children: <Widget>[
               Padding(
                 padding: const EdgeInsets.fromLTRB(0, 60.0, 0, 0),
-                child: IntrinsicWidth(
-                    child: ConstrainedBox(
-                        constraints: BoxConstraints(minWidth: screenWidth - 70),
-                        child: OctoLineChart(aspectRatio: 14 / 9, data: data))),
+                child: ResponsiveWidget(
+                  smallScreen: IntrinsicWidth(
+                      child: ConstrainedBox(
+                          constraints:
+                              BoxConstraints(minWidth: screenWidth - 70),
+                          child:
+                              OctoLineChart(aspectRatio: 14 / 9, data: data))),
+                  largeScreen: IntrinsicWidth(
+                      child: ConstrainedBox(
+                          constraints: BoxConstraints(maxWidth: 600),
+                          child:
+                              OctoLineChart(aspectRatio: 14 / 9, data: data))),
+                ),
               ),
             ],
           ),

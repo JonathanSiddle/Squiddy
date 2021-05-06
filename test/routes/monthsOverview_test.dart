@@ -5,7 +5,6 @@ import 'package:intl/intl.dart';
 import 'package:mockito/mockito.dart';
 import 'package:provider/provider.dart';
 import 'package:squiddy/Charts/overviewSummary.dart';
-import 'package:squiddy/monthDisplayCard.dart';
 import 'package:squiddy/octopus/OctopusManager.dart';
 import 'package:squiddy/octopus/dataClasses/AgilePrice.dart';
 import 'package:squiddy/octopus/dataClasses/EnergyConsumption.dart';
@@ -13,6 +12,7 @@ import 'package:squiddy/octopus/dataClasses/EnergyDay.dart';
 import 'package:squiddy/octopus/dataClasses/EnergyMonth.dart';
 import 'package:squiddy/octopus/settingsManager.dart';
 import 'package:squiddy/routes/monthsOverview.dart';
+import 'package:squiddy/widgets/SquiddyCard.dart';
 import 'package:squiddy/widgets/agilePriceCard.dart';
 import 'mocks.dart';
 

@@ -48,6 +48,7 @@ class SquiddyCard extends StatelessWidget {
             child: InkWell(
               onTap: onTap,
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
                   Padding(
                     padding: const EdgeInsets.fromLTRB(10.0, 10, 10, 0),

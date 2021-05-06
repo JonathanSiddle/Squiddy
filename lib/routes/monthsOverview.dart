@@ -13,10 +13,9 @@ import 'package:squiddy/octopus/dataClasses/EnergyMonth.dart';
 import 'package:squiddy/octopus/settingsManager.dart';
 import 'package:squiddy/routes/monthDaysPage.dart';
 import 'package:squiddy/routes/settingPage.dart';
+import 'package:squiddy/widgets/SquiddyCard.dart';
 import 'package:squiddy/widgets/agilePriceList.dart';
 import 'package:squiddy/widgets/responsiveWidget.dart';
-
-import '../monthDisplayCard.dart';
 
 class MonthsOverview extends StatefulWidget {
   MonthsOverview();
