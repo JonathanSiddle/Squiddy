@@ -28,6 +28,9 @@ void main() async {
   //init hive data store
   await Hive.initFlutter();
   Hive.registerAdapter(EnergyConsumptionAdapter());
+  // var readingBoxCurrent =
+  //     await Hive.openBox<EnergyConsumption>(SettingsManager.READING_BOX);
+  // readingBoxCurrent.deleteFromDisk();
   var readingBox =
       await Hive.openBox<EnergyConsumption>(SettingsManager.READING_BOX);
 
@@ -112,6 +115,7 @@ class _MyAppState extends State<MyApp> {
             accountId: settings.accountId,
             meterPoint: settings.meterPoint,
             meter: settings.meter,
+            activeAgileTariff: settings.activeAgileTariff,
             updateAccountSettings: (EnergyAccount ea) {
               if (settings.showAgilePrices == null) {
                 if (ea.hasActiveAgileAccount()) {

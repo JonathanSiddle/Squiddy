@@ -22,6 +22,16 @@ class EnergyMonth {
         .toList();
   }
 
+  DateTime get latestReadingDate {
+    var lastDay = days?.last;
+
+    if (lastDay != null) {
+      return DateTime(lastDay.date.year, lastDay.date.day, 00, 00);
+    }
+
+    return null;
+  }
+
   bool get missingReadings {
     return days.every((d) => d.validreading);
   }

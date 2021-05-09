@@ -251,7 +251,7 @@ class _MonthsOverviewState extends State<MonthsOverview> {
             ),
             SliverGrid(
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: gridSize, childAspectRatio: 21 / 8),
+                  crossAxisCount: gridSize, childAspectRatio: 21 / 9),
               delegate: SliverChildBuilderDelegate((context, index) {
                 var cMonth = months[index];
                 var displayFormat = DateFormat.yMMM();

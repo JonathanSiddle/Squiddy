@@ -27,6 +27,7 @@ class OctopusManager extends ChangeNotifier {
   EnergyAccount account;
   var consumption =
       OrderedSet<EnergyConsumption>(Comparing.on((c) => c.intervalStart));
+  var prices = OrderedSet<AgilePrice>(Comparing.on((ap) => ap.validFrom));
   // List<EnergyMonth> monthConsumption = [];
 
   OctopusManager(
@@ -64,6 +65,7 @@ class OctopusManager extends ChangeNotifier {
       @required String accountId,
       @required String meterPoint,
       @required String meter,
+      @required String activeAgileTariff,
       void Function(EnergyAccount) updateAccountSettings,
       DateTime Function() currentDateFetcher =
           DefaultCurrentDateTimeFetcher}) async {
@@ -96,38 +98,54 @@ class OctopusManager extends ChangeNotifier {
       // var date2 = DateTime(2021, 5, 01 - 1, 00, 00, 00);
       var currentDate = currentDateFetcher();
       //some days in the current month to get data for
+      //if the first day of the month, can just get previous results
       if (currentDate.day > 1) {
-        var latestMonthReadingDate =
-            monthsCache.length > 0 ? monthsCache[0]?.begin : null;
-        var expectedReadingCount = currentDate.day - 1;
+        var currentMonthCache = monthsCache.firstWhere(
+            (em) =>
+                em.begin.year == currentDate.year &&
+                em.begin.month == currentDate.month,
+            orElse: () => null);
+        var latestDate =
+            DateTime(currentDate.year, currentDate.month, 1, 00, 00);
 
-        if (monthsCache.length == 0 ||
-            latestMonthReadingDate?.year != currentDate.year &&
-                latestMonthReadingDate?.month != currentDate.month &&
-                monthsCache[0].days.length != expectedReadingCount &&
-                monthsCache[0].missingReadings) {
-          // get consumption from the current day to the very start of the current month
-
-          var beginningOfCurrentMonth =
-              DateTime(currentDate.year, currentDate.month, 0, 00, 00);
-          print('Calculated months');
-          var data = await octopusEnergyClient
-              .getConsumtion(apiKey, meterPoint, meter,
-                  periodFrom: beginningOfCurrentMonth)
-              .timeout(Duration(seconds: timeoutDuration));
-
-          consumption.addAll(data);
-          repo.saveAll(data);
-        } else {
-          //already have local data
-          initialised = true;
-          notifyListeners();
+        if (currentMonthCache != null) {
+          var latestRadingDate = currentMonthCache.latestReadingDate;
+          if (latestRadingDate != null) {
+            latestDate = latestDate;
+          }
         }
+
+        // get consumption from the current day to the very start of the current month
+        var data = await octopusEnergyClient
+            .getConsumtion(apiKey, meterPoint, meter, periodFrom: latestDate)
+            .timeout(Duration(seconds: timeoutDuration));
+
+        if (activeAgileTariff != null && activeAgileTariff.isNotEmpty) {
+          var priceData = await octopusEnergyClient
+              .getCurrentAgilePrices(
+                  tariffCode: activeAgileTariff, periodFrom: latestDate)
+              .timeout(Duration(seconds: timeoutDuration));
+          print('Hello');
+        }
+
+        // var pricingData = await octopusEnergyClient.getCurrentAgilePrices(
+        //     tariffCode: tariffCode);
+
+        consumption.addAll(data);
+        repo.saveAll(data);
+
+        initialised = true;
+        notifyListeners();
+      } else {
+        //already have local data
+        initialised = true;
+        notifyListeners();
       }
 
       // //*****get data for months */
       bool stillHaveData = true;
       while (stillHaveData) {
+        print('Getting month data');
         stillHaveData = false;
 
         var endOfLastMonth =
@@ -146,6 +164,14 @@ class OctopusManager extends ChangeNotifier {
               .getConsumtion(apiKey, meterPoint, meter,
                   periodFrom: beginningOfLastMonth, periodTo: endOfLastMonth)
               .timeout(Duration(seconds: timeoutDuration));
+          if (activeAgileTariff != null && activeAgileTariff.isNotEmpty) {
+            var priceData = await octopusEnergyClient
+                .getCurrentAgilePrices(
+                    tariffCode: activeAgileTariff,
+                    periodFrom: beginningOfLastMonth)
+                .timeout(Duration(seconds: timeoutDuration));
+            print('Hello');
+          }
           if (data != null && data.length > 0) {
             consumption.addAll(data);
             repo.saveAll(data);
@@ -237,14 +263,16 @@ class OctopusManager extends ChangeNotifier {
   }
 
   Future<List<AgilePrice>> getAgilePrices(
-      {@required String tariffCode, @required bool onlyAfterDateTime}) async {
+      {@required String tariffCode,
+      @required bool onlyAfterDateTime,
+      DateTime periodFrom}) async {
     List<AgilePrice> prices;
 
     if (tariffCode == null) return Future.error('Error - No tariffCode');
 
     try {
       prices = await octopusEnergyClient.getCurrentAgilePrices(
-          tariffCode: tariffCode);
+          periodFrom: periodFrom, tariffCode: tariffCode);
     } catch (_) {
       return Future.error('Error getting tariff data');
     }

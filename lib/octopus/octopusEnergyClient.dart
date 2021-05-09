@@ -141,13 +141,19 @@ class OctopusEneryClient {
   }
 
   Future<List<AgilePrice>> getCurrentAgilePrices(
-      {@required String tariffCode}) async {
+      {@required String tariffCode, @required DateTime periodFrom}) async {
+    var fm = DateFormat('yyyy-MM-ddTHH:mm:ss');
     List<AgilePrice> agilePrices = [];
+
+    String periodFromString;
+    if (periodFrom != null) {
+      periodFromString = 'period_from=${fm.format(periodFrom)}';
+    }
 
     http.Response response;
     try {
       response = await http.get(Uri.parse(
-          'https://api.octopus.energy/v1/products/AGILE-18-02-21/electricity-tariffs/$tariffCode/standard-unit-rates'));
+          'https://api.octopus.energy/v1/products/AGILE-18-02-21/electricity-tariffs/$tariffCode/standard-unit-rates?page_size=25000&$periodFromString'));
     } catch (e) {
       return null;
     }

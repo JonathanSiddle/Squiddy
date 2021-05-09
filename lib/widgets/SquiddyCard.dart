@@ -38,7 +38,7 @@ class SquiddyCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(10.0, 5, 10, 5),
       child: ConstrainedBox(
-        constraints: BoxConstraints(minHeight: 120),
+        constraints: BoxConstraints(minHeight: 150, minWidth: 150),
         child: Card(
           elevation: 10,
           // color: Color.fromARGB(255, 228, 78, 168),
@@ -52,18 +52,30 @@ class SquiddyCard extends StatelessWidget {
                 children: <Widget>[
                   Padding(
                     padding: const EdgeInsets.fromLTRB(10.0, 10, 10, 0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        Text(
-                          title,
-                          style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: textColour),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: <Widget>[
+                            Text(
+                              title,
+                              style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: textColour),
+                            ),
+                            Text(
+                              '$total',
+                              style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: textColour),
+                            ),
+                          ],
                         ),
                         Text(
-                          total,
+                          '£1000.66',
                           style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
