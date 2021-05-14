@@ -11,8 +11,10 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:squiddy/Theme/SquiddyTheme.dart';
+import 'package:squiddy/octopus/AgilePriceRepo.dart';
 import 'package:squiddy/octopus/EnergyConsumptionRepo.dart';
 import 'package:squiddy/octopus/OctopusManager.dart';
+import 'package:squiddy/octopus/dataClasses/AgilePrice.dart';
 import 'package:squiddy/octopus/dataClasses/ElectricityAccount.dart';
 import 'package:squiddy/octopus/dataClasses/EnergyConsumption.dart';
 import 'package:squiddy/octopus/dataClasses/EnergyMonth.dart';
@@ -27,12 +29,16 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   //init hive data store
   await Hive.initFlutter();
+  //register type adapters
   Hive.registerAdapter(EnergyConsumptionAdapter());
-  // var readingBoxCurrent =
-  //     await Hive.openBox<EnergyConsumption>(SettingsManager.READING_BOX);
-  // readingBoxCurrent.deleteFromDisk();
+  Hive.registerAdapter(AgilePriceAdapter());
+
+  //open boxes
   var readingBox =
       await Hive.openBox<EnergyConsumption>(SettingsManager.READING_BOX);
+  // readingBox.deleteFromDisk();
+  var pricingBox = await Hive.openBox<AgilePrice>(SettingsManager.PRICE_BOX);
+  // pricingBox.deleteFromDisk();
 
   //init error logging
   var sentryURL = environment['sentryURL'] ?? ' ';
@@ -54,7 +60,9 @@ void main() async {
       settingsMap: rawData == null ? {} : json.decode(rawData));
 
   var octoManager = OctopusManager(
-      repo: EnergyConsumptionHiveRepo(store: readingBox), logErrors: true);
+      priceRepo: AgilePriceHiveRepo(store: pricingBox),
+      readingRepo: EnergyConsumptionHiveRepo(store: readingBox),
+      logErrors: true);
   // await settingsManager.loadSettings();
   if (settingsManager.accountDetailsSet) {
     //if previously save details, assume they have been validated

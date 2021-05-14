@@ -1,12 +1,25 @@
 import 'dart:convert';
 
+import 'package:hive/hive.dart';
+import 'package:quiver/core.dart';
 import 'package:squiddy/octopus/octopusEnergyClient.dart';
 
-class AgilePrice {
+part 'AgilePrice.g.dart';
+
+@HiveType(typeId: 2)
+class AgilePrice implements Comparable {
+  @HiveField(0)
   DateTime validFrom;
+  @HiveField(1)
   DateTime validTo;
+  @HiveField(2)
   double valueExcVat;
+  @HiveField(3)
   double valueIncVat;
+
+  String get id {
+    return '${validFrom.toString()}|${validTo.toString()}';
+  }
 
   AgilePrice({
     this.validFrom,
@@ -15,19 +28,19 @@ class AgilePrice {
     this.valueIncVat,
   });
 
-  AgilePrice copyWith({
-    DateTime validFrom,
-    DateTime validTo,
-    double valueExcVat,
-    double valueIncVat,
-  }) {
-    return AgilePrice(
-      validFrom: validFrom ?? this.validFrom,
-      validTo: validTo ?? this.validTo,
-      valueExcVat: valueExcVat ?? this.valueExcVat,
-      valueIncVat: valueIncVat ?? this.valueIncVat,
-    );
-  }
+  // AgilePrice copyWith({
+  //   DateTime validFrom,
+  //   DateTime validTo,
+  //   double valueExcVat,
+  //   double valueIncVat,
+  // }) {
+  //   return AgilePrice(
+  //     validFrom: validFrom ?? this.validFrom,
+  //     validTo: validTo ?? this.validTo,
+  //     valueExcVat: valueExcVat ?? this.valueExcVat,
+  //     valueIncVat: valueIncVat ?? this.valueIncVat,
+  //   );
+  // }
 
   Map<String, dynamic> toMap() {
     return {
@@ -54,27 +67,23 @@ class AgilePrice {
   factory AgilePrice.fromJson(String source) =>
       AgilePrice.fromMap(json.decode(source));
 
-  @override
-  String toString() {
-    return 'AgilePrice(validFrom: $validFrom, validTo: $validTo, valueExcVat: $valueExcVat, valueIncVat: $valueIncVat)';
-  }
+  // @override
+  // String toString() {
+  //   return 'AgilePrice(validFrom: $validFrom, validTo: $validTo, valueExcVat: $valueExcVat, valueIncVat: $valueIncVat)';
+  // }
 
-  @override
   bool operator ==(Object o) {
-    if (identical(this, o)) return true;
-
-    return o is AgilePrice &&
-        o.validFrom == validFrom &&
-        o.validTo == validTo &&
-        o.valueExcVat == valueExcVat &&
-        o.valueIncVat == valueIncVat;
+    return o is AgilePrice && o.validFrom == validFrom && o.validTo == validTo;
+    // o.valueExcVat == valueExcVat &&
+    // o.valueIncVat == valueIncVat;
   }
 
+  int get hashCode => hash2(validFrom.hashCode, validTo.hashCode);
+
   @override
-  int get hashCode {
-    return validFrom.hashCode ^
-        validTo.hashCode ^
-        valueExcVat.hashCode ^
-        valueIncVat.hashCode;
+  int compareTo(other) {
+    int start = validFrom.compareTo(other.validFrom);
+
+    return start != 0 ? start : validTo.compareTo(other.validTo);
   }
 }

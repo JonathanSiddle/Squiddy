@@ -1,9 +1,9 @@
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:flutter/widgets.dart';
-import 'package:ordered_set/comparing.dart';
-import 'package:ordered_set/ordered_set.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:squiddy/octopus/AgilePriceRepo.dart';
 import 'package:squiddy/octopus/EnergyConsumptionRepo.dart';
 import 'package:squiddy/octopus/dataClasses/AgilePrice.dart';
 import 'package:squiddy/octopus/dataClasses/ElectricityAccount.dart';
@@ -12,7 +12,8 @@ import 'package:squiddy/octopus/dataClasses/EnergyMonth.dart';
 import 'package:squiddy/octopus/octopusEnergyClient.dart';
 
 class OctopusManager extends ChangeNotifier {
-  final EnergyConsumptionRepo repo;
+  final EnergyConsumptionRepo readingRepo;
+  final AgilePriceRepo priceRepo;
   var timeoutDuration = 90;
   var initialised = false;
   var loadingData = false;
@@ -25,13 +26,13 @@ class OctopusManager extends ChangeNotifier {
   String apiKey;
   OctopusEneryClient octopusEnergyClient;
   EnergyAccount account;
-  var consumption =
-      OrderedSet<EnergyConsumption>(Comparing.on((c) => c.intervalStart));
-  var prices = OrderedSet<AgilePrice>(Comparing.on((ap) => ap.validFrom));
+  var consumption = SplayTreeSet<EnergyConsumption>();
+  var prices = SplayTreeSet<AgilePrice>();
   // List<EnergyMonth> monthConsumption = [];
 
   OctopusManager(
-      {this.repo,
+      {this.readingRepo,
+      this.priceRepo,
       this.octopusEnergyClient,
       this.timeoutDuration,
       DateTime Function() inDateTimeFetcher,
@@ -55,9 +56,18 @@ class OctopusManager extends ChangeNotifier {
   }
 
   List<EnergyMonth> get monthConsumption {
-    var m =
-        OctopusEneryClient.getEnergyMonthsFromConsumption(consumption.toList());
+    var m = OctopusEneryClient.getEnergyMonthsFromConsumption(
+        consumption.toList(),
+        prices: prices.toList());
     return m;
+  }
+
+  List<AgilePrice> get currentAgilePrices {
+    var currentDateTime = dateTimeFetcher();
+    var temp = prices.where((p) => p.validTo.isAfter(currentDateTime)).toList();
+    var tempSet = temp.toSet();
+    print('Hello!');
+    return temp;
   }
 
   Future<void> initData(
@@ -85,7 +95,7 @@ class OctopusManager extends ChangeNotifier {
     }
 
     //get any locally stored readings
-    var readings = repo.getAll();
+    var readings = readingRepo.getAll();
     consumption.addAll(readings);
     //convert to months to make checking for
     //missing readings easier
@@ -120,19 +130,11 @@ class OctopusManager extends ChangeNotifier {
             .getConsumtion(apiKey, meterPoint, meter, periodFrom: latestDate)
             .timeout(Duration(seconds: timeoutDuration));
 
-        if (activeAgileTariff != null && activeAgileTariff.isNotEmpty) {
-          var priceData = await octopusEnergyClient
-              .getCurrentAgilePrices(
-                  tariffCode: activeAgileTariff, periodFrom: latestDate)
-              .timeout(Duration(seconds: timeoutDuration));
-          print('Hello');
-        }
-
         // var pricingData = await octopusEnergyClient.getCurrentAgilePrices(
         //     tariffCode: tariffCode);
 
         consumption.addAll(data);
-        repo.saveAll(data);
+        readingRepo.saveAll(data);
 
         initialised = true;
         notifyListeners();
@@ -164,17 +166,10 @@ class OctopusManager extends ChangeNotifier {
               .getConsumtion(apiKey, meterPoint, meter,
                   periodFrom: beginningOfLastMonth, periodTo: endOfLastMonth)
               .timeout(Duration(seconds: timeoutDuration));
-          if (activeAgileTariff != null && activeAgileTariff.isNotEmpty) {
-            var priceData = await octopusEnergyClient
-                .getCurrentAgilePrices(
-                    tariffCode: activeAgileTariff,
-                    periodFrom: beginningOfLastMonth)
-                .timeout(Duration(seconds: timeoutDuration));
-            print('Hello');
-          }
+
           if (data != null && data.length > 0) {
             consumption.addAll(data);
-            repo.saveAll(data);
+            readingRepo.saveAll(data);
             stillHaveData = true;
           }
         } else {
@@ -217,6 +212,128 @@ class OctopusManager extends ChangeNotifier {
     loadingData = false;
     notifyListeners();
     // return 'Got data';
+    getPricingInformation(
+        apiKey: apiKey,
+        accountId: accountId,
+        meterPoint: meterPoint,
+        meter: meter,
+        activeAgileTariff: activeAgileTariff);
+  }
+
+  getPricingInformation(
+      {@required String apiKey,
+      @required String accountId,
+      @required String meterPoint,
+      @required String meter,
+      @required String activeAgileTariff,
+      void Function(EnergyAccount) updateAccountSettings,
+      DateTime Function() currentDateFetcher =
+          DefaultCurrentDateTimeFetcher}) async {
+    //get any locally stored readings
+    var storedPrices = priceRepo.getAll();
+    var storedPriceList = storedPrices.toList();
+    prices.addAll(storedPrices);
+
+    var monthsCache = monthConsumption;
+
+    try {
+      print('Initing data');
+      //get consumption for previous day
+      // var date = DateTime(2021, 5, 01, 00, 00, 00);
+      // var date2 = DateTime(2021, 5, 01 - 1, 00, 00, 00);
+      var currentDate = currentDateFetcher();
+      //some days in the current month to get data for
+      //if the first day of the month, can just get previous results
+      if (currentDate.day > 1) {
+        var latestDate =
+            DateTime(currentDate.year, currentDate.month, 1, 00, 00);
+
+        if (activeAgileTariff != null && activeAgileTariff.isNotEmpty) {
+          var priceData = await octopusEnergyClient
+              .getAgilePrices(
+                  tariffCode: activeAgileTariff, periodFrom: latestDate)
+              .timeout(Duration(seconds: timeoutDuration));
+          print('Hello');
+
+          prices.addAll(priceData);
+          priceRepo.saveAll(priceData);
+        }
+
+        notifyListeners();
+      } else {
+        //already have local data
+        notifyListeners();
+      }
+
+      //*****get data for months */
+      bool stillHaveData = true;
+      while (stillHaveData) {
+        print('Getting month data');
+        stillHaveData = false;
+
+        var endOfLastMonth =
+            DateTime(currentDate.year, currentDate.month, 0, 00, 00);
+        var beginningOfLastMonth =
+            DateTime(endOfLastMonth.year, endOfLastMonth.month, 1, 00, 00);
+        var month = monthsCache.firstWhere(
+            (m) =>
+                m.begin.year == beginningOfLastMonth.year &&
+                m.begin.month == beginningOfLastMonth.month,
+            orElse: () => null);
+
+        if (month == null || month.missingReadings) {
+          //request prices
+          if (activeAgileTariff != null && activeAgileTariff.isNotEmpty) {
+            var priceData = await octopusEnergyClient
+                .getAgilePrices(
+                    tariffCode: activeAgileTariff,
+                    periodFrom: beginningOfLastMonth,
+                    periodTo: endOfLastMonth)
+                .timeout(Duration(seconds: timeoutDuration));
+            print('Hello');
+
+            prices.addAll(priceData);
+            priceRepo.saveAll(priceData);
+          }
+        } else {
+          //found local data
+          stillHaveData = true;
+        }
+
+        //update current month
+        currentDate = beginningOfLastMonth;
+        notifyListeners();
+      }
+      // //*****get data for months */
+
+      // var data = await octopusEnergyClient
+      //     .getConsumtion(apiKey, meterPoint, meter)
+      //     .timeout(Duration(seconds: timeoutDuration));
+      // consumption.addAll(data);
+      // print('Got data');
+
+      // var m = OctopusEneryClient.getEnergyMonthsFromConsumption(consumption);
+      // monthConsumption = m;
+    } on TimeoutException catch (_) {
+      timeoutError = true;
+    } catch (exception, stackTrace) {
+      loadingData = false;
+      Sentry.captureException(
+        exception,
+        stackTrace: stackTrace,
+      );
+    }
+
+    if (consumption == null || consumption.length == 0) {
+      errorGettingData = true;
+    } else {
+      initialised = true;
+    }
+
+    // await Future.delayed(
+    //     const Duration(seconds: 5), () => print("Finished delay"));
+    loadingData = false;
+    notifyListeners();
   }
 
   Future<EnergyAccount> getAccountDetails(
@@ -256,8 +373,7 @@ class OctopusManager extends ChangeNotifier {
 
   resetState() {
     initialised = false;
-    consumption =
-        OrderedSet<EnergyConsumption>(Comparing.on((c) => c.intervalStart));
+    consumption = SplayTreeSet<EnergyConsumption>();
 
     notifyListeners();
   }
@@ -271,7 +387,7 @@ class OctopusManager extends ChangeNotifier {
     if (tariffCode == null) return Future.error('Error - No tariffCode');
 
     try {
-      prices = await octopusEnergyClient.getCurrentAgilePrices(
+      prices = await octopusEnergyClient.getAgilePrices(
           periodFrom: periodFrom, tariffCode: tariffCode);
     } catch (_) {
       return Future.error('Error getting tariff data');

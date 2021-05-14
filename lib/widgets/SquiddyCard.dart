@@ -4,6 +4,7 @@ import 'package:squiddy/Charts/octoLineChart.dart';
 class SquiddyCard extends StatelessWidget {
   final String title;
   final String total;
+  final String totalCost;
   final Color color;
   final Color inkColor;
   final double ratio;
@@ -18,6 +19,7 @@ class SquiddyCard extends StatelessWidget {
   SquiddyCard(
       {@required this.title,
       @required this.total,
+      @required this.totalCost,
       @required this.graphData,
       this.graphInteractive,
       this.graphColours,
@@ -75,7 +77,7 @@ class SquiddyCard extends StatelessWidget {
                           ],
                         ),
                         Text(
-                          '£1000.66',
+                          '£$totalCost',
                           style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,

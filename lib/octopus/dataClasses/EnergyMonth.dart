@@ -36,6 +36,10 @@ class EnergyMonth {
     return days.every((d) => d.validreading);
   }
 
+  bool get missingPrices {
+    return days.every((d) => d.validPrice);
+  }
+
   num get readings {
     num total = 0;
 
@@ -59,5 +63,23 @@ class EnergyMonth {
     }
 
     return total;
+  }
+
+  num get totalPrice {
+    num total = 0.0;
+
+    for (var d in days) {
+      if (d.totalCostIncVat != null) {
+        total += d.totalCostIncVat;
+      }
+    }
+
+    return total;
+  }
+
+  num get totalPricePounds {
+    num total = totalPrice;
+
+    return num.parse(total.toStringAsFixed(2)) / 100;
   }
 }

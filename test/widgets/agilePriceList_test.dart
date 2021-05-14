@@ -50,7 +50,7 @@ main() {
             valueIncVat: 11),
       ];
       var ec = MockOctopusEnergyCLient();
-      when(ec.getCurrentAgilePrices(tariffCode: anyNamed('tariffCode')))
+      when(ec.getAgilePrices(tariffCode: anyNamed('tariffCode')))
           .thenAnswer((_) => Future.value(agilePrices));
       var ls = MockLocalStore();
       var widget = await makeWidgetTestable(octoEnergyClient: ec, store: ls);
@@ -68,7 +68,7 @@ main() {
 
     testWidgets('Show error if fails to get data', (WidgetTester tester) async {
       var ec = MockOctopusEnergyCLient();
-      when(ec.getCurrentAgilePrices(tariffCode: anyNamed('tariffCode')))
+      when(ec.getAgilePrices(tariffCode: anyNamed('tariffCode')))
           .thenAnswer((_) => Future.error('Error getting data'));
       var ls = MockLocalStore();
       var widget = await makeWidgetTestable(octoEnergyClient: ec, store: ls);

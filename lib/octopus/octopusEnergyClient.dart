@@ -140,14 +140,19 @@ class OctopusEneryClient {
     return energyMonths;
   }
 
-  Future<List<AgilePrice>> getCurrentAgilePrices(
-      {@required String tariffCode, @required DateTime periodFrom}) async {
+  Future<List<AgilePrice>> getAgilePrices(
+      {@required String tariffCode,
+      @required DateTime periodFrom,
+      DateTime periodTo}) async {
     var fm = DateFormat('yyyy-MM-ddTHH:mm:ss');
     List<AgilePrice> agilePrices = [];
 
     String periodFromString;
     if (periodFrom != null) {
       periodFromString = 'period_from=${fm.format(periodFrom)}';
+      if (periodTo != null) {
+        periodFromString += '&period_to=${fm.format(periodTo)}';
+      }
     }
 
     http.Response response;
@@ -167,10 +172,12 @@ class OctopusEneryClient {
   }
 
   static List<EnergyMonth> getEnergyMonthsFromConsumption(
-      List<EnergyConsumption> consumption) {
+      List<EnergyConsumption> consumption,
+      {List<AgilePrice> prices}) {
     if (consumption == null || consumption.length <= 0) {
       return [];
     } else {
+      var includePrices = prices != null && prices.length > 0;
       var dateFormat = DateFormat('HH:mm');
       //assume consumption in reverse order, so flip to go from the earliest date first
       List<EnergyMonth> energyMonths = [];
@@ -190,11 +197,16 @@ class OctopusEneryClient {
 
       for (var c in consumption) {
         var start = c.intervalStart;
+        var price = prices?.firstWhere(
+          (p) => p.validFrom == c.intervalStart,
+          orElse: () => null,
+        );
         // print(start);
 
         if (start.month == currentMonth) {
           if (start.day == currentDay) {
             currentEnergyDay.addConsumption(dateFormat.format(start), c);
+            currentEnergyDay.addPrice(dateFormat.format(start), price);
           } else {
             currentEnergyDay = EnergyDay();
             currentEnergyMonth.days.add(currentEnergyDay);
@@ -202,6 +214,7 @@ class OctopusEneryClient {
             currentDate = c.intervalStart;
             var formattedDate = dateFormat.format(start);
             currentEnergyDay.addConsumption(formattedDate, c);
+            currentEnergyDay.addPrice(dateFormat.format(start), price);
           }
         } else {
           currentEnergyMonth.end = currentDate;
@@ -214,6 +227,7 @@ class OctopusEneryClient {
 
           currentEnergyDay.date = c.intervalStart;
           currentEnergyDay.addConsumption(dateFormat.format(start), c);
+          currentEnergyDay.addPrice(dateFormat.format(start), price);
         }
 
         currentDate = c.intervalStart;

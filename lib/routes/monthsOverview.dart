@@ -279,6 +279,8 @@ class _MonthsOverviewState extends State<MonthsOverview> {
                       inkColor: SquiddyTheme.squiddyPrimary[300],
                       title: displayFormat.format(cMonth.begin),
                       total: '${cMonth.totalConsumption.toStringAsFixed(2)}kWh',
+                      totalCost:
+                          '${cMonth.totalPricePounds.toStringAsFixed(2)}',
                     ),
                   ),
                 );

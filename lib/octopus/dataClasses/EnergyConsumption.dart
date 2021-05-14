@@ -5,15 +5,15 @@ import 'package:squiddy/octopus/octopusEnergyClient.dart';
 part 'EnergyConsumption.g.dart';
 
 @HiveType(typeId: 1)
-class EnergyConsumption {
+class EnergyConsumption implements Comparable {
   @HiveField(0)
   num consumption;
   @HiveField(1)
   DateTime intervalStart;
   @HiveField(2)
   DateTime intervalEnd;
-  @HiveField(3)
-  num price;
+  // @HiveField(3)
+  // num price;
 
   String get id {
     return '${intervalStart.toString()}|${intervalEnd.toString()}';
@@ -34,4 +34,11 @@ class EnergyConsumption {
       o.intervalEnd == intervalEnd;
   int get hashCode =>
       hash3(consumption.hashCode, intervalStart.hashCode, intervalEnd.hashCode);
+
+  @override
+  int compareTo(other) {
+    int start = intervalStart.compareTo(other.intervalStart);
+
+    return start != 0 ? start : intervalEnd.compareTo(intervalEnd);
+  }
 }

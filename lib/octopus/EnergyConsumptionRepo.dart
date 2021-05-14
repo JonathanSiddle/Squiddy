@@ -1,10 +1,11 @@
+import 'package:flutter/widgets.dart';
 import 'package:hive/hive.dart';
 import 'package:squiddy/octopus/dataClasses/EnergyConsumption.dart';
 
 class EnergyConsumptionHiveRepo implements EnergyConsumptionRepo {
   final Box<EnergyConsumption> store;
 
-  EnergyConsumptionHiveRepo({this.store});
+  EnergyConsumptionHiveRepo({@required this.store});
 
   Set<EnergyConsumption> getAll() {
     return store.values.toSet();

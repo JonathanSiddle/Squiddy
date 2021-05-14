@@ -1,38 +1,41 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'EnergyConsumption.dart';
+part of 'AgilePrice.dart';
 
 // **************************************************************************
 // TypeAdapterGenerator
 // **************************************************************************
 
-class EnergyConsumptionAdapter extends TypeAdapter<EnergyConsumption> {
+class AgilePriceAdapter extends TypeAdapter<AgilePrice> {
   @override
-  final int typeId = 1;
+  final int typeId = 2;
 
   @override
-  EnergyConsumption read(BinaryReader reader) {
+  AgilePrice read(BinaryReader reader) {
     final numOfFields = reader.readByte();
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return EnergyConsumption(
-      intervalStart: fields[1] as DateTime,
-      intervalEnd: fields[2] as DateTime,
-      consumption: fields[0] as num,
+    return AgilePrice(
+      validFrom: fields[0] as DateTime,
+      validTo: fields[1] as DateTime,
+      valueExcVat: fields[2] as double,
+      valueIncVat: fields[3] as double,
     );
   }
 
   @override
-  void write(BinaryWriter writer, EnergyConsumption obj) {
+  void write(BinaryWriter writer, AgilePrice obj) {
     writer
-      ..writeByte(3)
+      ..writeByte(4)
       ..writeByte(0)
-      ..write(obj.consumption)
+      ..write(obj.validFrom)
       ..writeByte(1)
-      ..write(obj.intervalStart)
+      ..write(obj.validTo)
       ..writeByte(2)
-      ..write(obj.intervalEnd);
+      ..write(obj.valueExcVat)
+      ..writeByte(3)
+      ..write(obj.valueIncVat);
   }
 
   @override
@@ -41,7 +44,7 @@ class EnergyConsumptionAdapter extends TypeAdapter<EnergyConsumption> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is EnergyConsumptionAdapter &&
+      other is AgilePriceAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

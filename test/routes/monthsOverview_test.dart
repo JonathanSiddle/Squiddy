@@ -171,7 +171,7 @@ void main() {
             valueIncVat: 11),
       ];
       var ec = MockOctopusEnergyCLient();
-      when(ec.getCurrentAgilePrices(tariffCode: anyNamed('tariffCode')))
+      when(ec.getAgilePrices(tariffCode: anyNamed('tariffCode')))
           .thenAnswer((_) => Future.value(agilePrices));
       var settingsManager = SettingsManager(localStore: MockLocalStore());
       settingsManager.showAgilePrices = true;

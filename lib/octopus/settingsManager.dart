@@ -19,6 +19,7 @@ class SettingsManager extends ChangeNotifier {
   static const String THEME_BRIGHTNESS_KEY = 'THEME_BRIGHTNESS';
 
   final SquiddyDataStore localStore;
+
   bool _showAgilePrices;
   String _activeAgileTariff;
   String _selectedAgileRegion;
