@@ -149,9 +149,9 @@ class OctopusEneryClient {
 
     String periodFromString;
     if (periodFrom != null) {
-      periodFromString = 'period_from=${fm.format(periodFrom)}';
+      periodFromString = 'period_from=${fm.format(periodFrom)}Z';
       if (periodTo != null) {
-        periodFromString += '&period_to=${fm.format(periodTo)}';
+        periodFromString += '&period_to=${fm.format(periodTo)}Z';
       }
     }
 
@@ -177,7 +177,9 @@ class OctopusEneryClient {
     if (consumption == null || consumption.length <= 0) {
       return [];
     } else {
-      var includePrices = prices != null && prices.length > 0;
+      // consumption.sort((a, b) => a.intervalStart.compareTo(b.intervalStart));
+      // prices.sort((a, b) => a.validFrom.compareTo(b.validFrom));
+
       var dateFormat = DateFormat('HH:mm');
       //assume consumption in reverse order, so flip to go from the earliest date first
       List<EnergyMonth> energyMonths = [];
@@ -201,7 +203,6 @@ class OctopusEneryClient {
           (p) => p.validFrom == c.intervalStart,
           orElse: () => null,
         );
-        // print(start);
 
         if (start.month == currentMonth) {
           if (start.day == currentDay) {

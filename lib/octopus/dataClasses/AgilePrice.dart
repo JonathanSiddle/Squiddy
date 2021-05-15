@@ -82,8 +82,8 @@ class AgilePrice implements Comparable {
 
   @override
   int compareTo(other) {
-    int start = validFrom.compareTo(other.validFrom);
+    int start = other.validFrom.compareTo(validFrom);
 
-    return start != 0 ? start : validTo.compareTo(other.validTo);
+    return start != 0 ? start : other.validTo.compareTo(validTo);
   }
 }

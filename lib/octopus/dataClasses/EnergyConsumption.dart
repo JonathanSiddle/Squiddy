@@ -37,8 +37,8 @@ class EnergyConsumption implements Comparable {
 
   @override
   int compareTo(other) {
-    int start = intervalStart.compareTo(other.intervalStart);
+    int start = other.intervalStart.compareTo(intervalStart);
 
-    return start != 0 ? start : intervalEnd.compareTo(intervalEnd);
+    return start != 0 ? start : other.intervalEnd.compareTo(intervalEnd);
   }
 }

@@ -56,18 +56,16 @@ class OctopusManager extends ChangeNotifier {
   }
 
   List<EnergyMonth> get monthConsumption {
-    var m = OctopusEneryClient.getEnergyMonthsFromConsumption(
-        consumption.toList(),
+    var consList = consumption.toList();
+    var m = OctopusEneryClient.getEnergyMonthsFromConsumption(consList,
         prices: prices.toList());
-    return m;
+    return m.reversed.toList();
   }
 
   List<AgilePrice> get currentAgilePrices {
     var currentDateTime = dateTimeFetcher();
     var temp = prices.where((p) => p.validTo.isAfter(currentDateTime)).toList();
-    var tempSet = temp.toSet();
-    print('Hello!');
-    return temp;
+    return temp.reversed.toList();
   }
 
   Future<void> initData(
@@ -231,7 +229,6 @@ class OctopusManager extends ChangeNotifier {
           DefaultCurrentDateTimeFetcher}) async {
     //get any locally stored readings
     var storedPrices = priceRepo.getAll();
-    var storedPriceList = storedPrices.toList();
     prices.addAll(storedPrices);
 
     var monthsCache = monthConsumption;
@@ -281,8 +278,10 @@ class OctopusManager extends ChangeNotifier {
                 m.begin.month == beginningOfLastMonth.month,
             orElse: () => null);
 
-        if (month == null || month.missingReadings) {
+        if (month == null || month.missingPrices) {
           //request prices
+          print(
+              'Getting agile prices from ${beginningOfLastMonth.toString()} to ${endOfLastMonth.toString()}');
           if (activeAgileTariff != null && activeAgileTariff.isNotEmpty) {
             var priceData = await octopusEnergyClient
                 .getAgilePrices(
@@ -290,11 +289,12 @@ class OctopusManager extends ChangeNotifier {
                     periodFrom: beginningOfLastMonth,
                     periodTo: endOfLastMonth)
                 .timeout(Duration(seconds: timeoutDuration));
-            print('Hello');
+            print('Got agile price data');
 
             prices.addAll(priceData);
             priceRepo.saveAll(priceData);
           }
+          stillHaveData = true;
         } else {
           //found local data
           stillHaveData = true;
@@ -322,12 +322,6 @@ class OctopusManager extends ChangeNotifier {
         exception,
         stackTrace: stackTrace,
       );
-    }
-
-    if (consumption == null || consumption.length == 0) {
-      errorGettingData = true;
-    } else {
-      initialised = true;
     }
 
     // await Future.delayed(

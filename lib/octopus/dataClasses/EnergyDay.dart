@@ -31,6 +31,7 @@ class EnergyDay {
   }
 
   bool get validreading => !(consumption.length < 46);
+  bool get inValidPrice => prices.length < 46;
   bool get validPrice => !(prices.length < 46);
 
   num get totalCostIncVat {
