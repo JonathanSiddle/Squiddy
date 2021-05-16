@@ -28,6 +28,7 @@ class OctopusManager extends ChangeNotifier {
   EnergyAccount account;
   var consumption = SplayTreeSet<EnergyConsumption>();
   var prices = SplayTreeSet<AgilePrice>();
+  List<EnergyMonth> monthsCache = [];
   // List<EnergyMonth> monthConsumption = [];
 
   OctopusManager(
@@ -56,10 +57,15 @@ class OctopusManager extends ChangeNotifier {
   }
 
   List<EnergyMonth> get monthConsumption {
-    var consList = consumption.toList();
-    var m = OctopusEneryClient.getEnergyMonthsFromConsumption(consList,
-        prices: prices.toList());
-    return m.reversed.toList();
+    print('Calling monthConsumption');
+    if (loadingData) {
+      var consList = consumption.toList();
+      monthsCache = OctopusEneryClient.getEnergyMonthsFromConsumption(consList,
+          prices: prices.toList());
+      return monthsCache.reversed.toList();
+    }
+
+    return monthsCache.reversed.toList();
   }
 
   List<AgilePrice> get currentAgilePrices {
@@ -97,7 +103,6 @@ class OctopusManager extends ChangeNotifier {
     consumption.addAll(readings);
     //convert to months to make checking for
     //missing readings easier
-    var monthsCache = monthConsumption;
 
     try {
       print('Initing data');
@@ -145,7 +150,7 @@ class OctopusManager extends ChangeNotifier {
       // //*****get data for months */
       bool stillHaveData = true;
       while (stillHaveData) {
-        print('Getting month data');
+        print('Getting month pricing data');
         stillHaveData = false;
 
         var endOfLastMonth =
@@ -170,9 +175,6 @@ class OctopusManager extends ChangeNotifier {
             readingRepo.saveAll(data);
             stillHaveData = true;
           }
-        } else {
-          //found local data
-          stillHaveData = true;
         }
 
         //update current month
@@ -227,11 +229,10 @@ class OctopusManager extends ChangeNotifier {
       void Function(EnergyAccount) updateAccountSettings,
       DateTime Function() currentDateFetcher =
           DefaultCurrentDateTimeFetcher}) async {
+    loadingData = true;
     //get any locally stored readings
     var storedPrices = priceRepo.getAll();
     prices.addAll(storedPrices);
-
-    var monthsCache = monthConsumption;
 
     try {
       print('Initing data');
@@ -278,7 +279,10 @@ class OctopusManager extends ChangeNotifier {
                 m.begin.month == beginningOfLastMonth.month,
             orElse: () => null);
 
-        if (month == null || month.missingPrices) {
+        var afterFirstConsumption =
+            month.begin.isAfter(monthsCache?.first?.begin);
+
+        if (month == null || month.missingPrices && afterFirstConsumption) {
           //request prices
           print(
               'Getting agile prices from ${beginningOfLastMonth.toString()} to ${endOfLastMonth.toString()}');
@@ -295,14 +299,10 @@ class OctopusManager extends ChangeNotifier {
             priceRepo.saveAll(priceData);
           }
           stillHaveData = true;
-        } else {
-          //found local data
-          stillHaveData = true;
         }
-
         //update current month
         currentDate = beginningOfLastMonth;
-        notifyListeners();
+        // notifyListeners();
       }
       // //*****get data for months */
 

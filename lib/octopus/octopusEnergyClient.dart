@@ -49,7 +49,7 @@ class OctopusEneryClient {
     //return any data, but should return status 200 if other details are correct
     var consumptionRequest = await http.get(
         Uri.parse(
-            'https://api.octopus.energy/v1/electricity-meter-points/$meterPoint/meters/$meter/consumption/?page_size=1&period_from=1990-01-01T00:00:00&period_to=1990-01-01T00:30:00'),
+            'https://api.octopus.energy/v1/electricity-meter-points/$meterPoint/meters/$meter/consumption/?page_size=1&period_from=1990-01-01T00:00:00Z&period_to=1990-01-01T00:30:00Z'),
         headers: getHeaders(apiKey));
 
     if (accountDetails.statusCode == 200 &&
@@ -86,11 +86,11 @@ class OctopusEneryClient {
     var fm = DateFormat('yyyy-MM-ddTHH:mm:ss');
     String toFromString;
     if (periodFrom != null) {
-      toFromString = 'period_from=${fm.format(periodFrom)}';
+      toFromString = 'period_from=${fm.format(periodFrom)}Z';
     }
 
     if (periodTo != null) {
-      toFromString += '&period_to=${fm.format(periodTo)}';
+      toFromString += '&period_to=${fm.format(periodTo)}Z';
     }
 
     http.Response response;
