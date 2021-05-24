@@ -183,8 +183,7 @@ class _MyAppState extends State<MyApp> {
                         return Scaffold(
                           appBar: null,
                           body: om.initialised && !om.errorGettingData
-                              ? ProxyProvider<OctopusManager,
-                                  List<EnergyMonth>>(
+                              ? ProxyProvider<OctopusManager, Set<EnergyMonth>>(
                                   update: (_, om, __) => om.monthConsumption,
                                   child: MonthsOverview(),
                                 )

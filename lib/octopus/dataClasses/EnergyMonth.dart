@@ -37,7 +37,7 @@ class EnergyMonth {
   }
 
   bool get missingPrices {
-    return days.any((d) => d.inValidPrice);
+    return days.any((d) => d?.inValidPrice);
   }
 
   num get readings {

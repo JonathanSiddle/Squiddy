@@ -28,8 +28,7 @@ class OctopusManager extends ChangeNotifier {
   EnergyAccount account;
   var consumption = SplayTreeSet<EnergyConsumption>();
   var prices = SplayTreeSet<AgilePrice>();
-  List<EnergyMonth> monthsCache = [];
-  // List<EnergyMonth> monthConsumption = [];
+  Set<EnergyMonth> monthsCache = HashSet<EnergyMonth>();
 
   OctopusManager(
       {this.readingRepo,
@@ -56,16 +55,18 @@ class OctopusManager extends ChangeNotifier {
     }
   }
 
-  List<EnergyMonth> get monthConsumption {
+  Set<EnergyMonth> get monthConsumption {
     print('Calling monthConsumption');
     if (loadingData) {
       var consList = consumption.toList();
-      monthsCache = OctopusEneryClient.getEnergyMonthsFromConsumption(consList,
-          prices: prices.toList());
-      return monthsCache.reversed.toList();
+      monthsCache = OctopusEneryClient.getEnergyMonthsFromConsumption(
+        consList,
+        prices: prices.toList(),
+      );
+      return monthsCache;
     }
 
-    return monthsCache.reversed.toList();
+    return monthsCache;
   }
 
   List<AgilePrice> get currentAgilePrices {
@@ -101,105 +102,146 @@ class OctopusManager extends ChangeNotifier {
     //get any locally stored readings
     var readings = readingRepo.getAll();
     consumption.addAll(readings);
-    //convert to months to make checking for
-    //missing readings easier
+    var storedPrices = priceRepo.getAll();
+    prices.addAll(storedPrices);
 
-    try {
-      print('Initing data');
-      //get consumption for previous day
-      // var date = DateTime(2021, 5, 01, 00, 00, 00);
-      // var date2 = DateTime(2021, 5, 01 - 1, 00, 00, 00);
-      var currentDate = currentDateFetcher();
-      //some days in the current month to get data for
-      //if the first day of the month, can just get previous results
-      if (currentDate.day > 1) {
-        var currentMonthCache = monthsCache.firstWhere(
-            (em) =>
-                em.begin.year == currentDate.year &&
-                em.begin.month == currentDate.month,
-            orElse: () => null);
-        var latestDate =
-            DateTime(currentDate.year, currentDate.month, 1, 00, 00);
+    print('Initing data');
+    var currentDate = currentDateFetcher();
+    //some days in the current month to get data for
+    //if the first day of the month, can just get previous results
+    if (currentDate.day > 1) {
+      var currentMonthCache = monthsCache.firstWhere(
+          (em) =>
+              em.begin.year == currentDate.year &&
+              em.begin.month == currentDate.month,
+          orElse: () => null);
+      var latestDate = DateTime(currentDate.year, currentDate.month, 1, 00, 00);
 
-        if (currentMonthCache != null) {
-          var latestRadingDate = currentMonthCache.latestReadingDate;
-          if (latestRadingDate != null) {
-            latestDate = latestDate;
-          }
+      if (currentMonthCache != null) {
+        var latestRadingDate = currentMonthCache.latestReadingDate;
+        if (latestRadingDate != null) {
+          latestDate = latestDate;
         }
+      }
 
+      try {
         // get consumption from the current day to the very start of the current month
         var data = await octopusEnergyClient
             .getConsumtion(apiKey, meterPoint, meter, periodFrom: latestDate)
             .timeout(Duration(seconds: timeoutDuration));
 
-        // var pricingData = await octopusEnergyClient.getCurrentAgilePrices(
-        //     tariffCode: tariffCode);
-
         consumption.addAll(data);
         readingRepo.saveAll(data);
-
-        initialised = true;
-        notifyListeners();
-      } else {
-        //already have local data
-        initialised = true;
-        notifyListeners();
+      } on TimeoutException catch (_) {
+        timeoutError = true;
+      } catch (exception, stackTrace) {
+        loadingData = false;
+        Sentry.captureException(
+          exception,
+          stackTrace: stackTrace,
+        );
       }
 
-      // //*****get data for months */
-      bool stillHaveData = true;
-      while (stillHaveData) {
-        print('Getting month pricing data');
-        stillHaveData = false;
+      try {
+        if (activeAgileTariff != null && activeAgileTariff.isNotEmpty) {
+          var priceData = await octopusEnergyClient
+              .getAgilePrices(
+                tariffCode: activeAgileTariff,
+                periodFrom: latestDate,
+              )
+              .timeout(Duration(seconds: timeoutDuration));
+          print('Got agile price data');
 
-        var endOfLastMonth =
-            DateTime(currentDate.year, currentDate.month, 0, 00, 00);
-        var beginningOfLastMonth =
-            DateTime(endOfLastMonth.year, endOfLastMonth.month, 1, 00, 00);
-        var month = monthsCache.firstWhere(
-            (m) =>
-                m.begin.year == beginningOfLastMonth.year &&
-                m.begin.month == beginningOfLastMonth.month,
-            orElse: () => null);
+          prices.addAll(priceData);
+          priceRepo.saveAll(priceData);
+        }
+      } on TimeoutException catch (_) {
+        timeoutError = true;
+      } catch (exception, stackTrace) {
+        loadingData = false;
+        Sentry.captureException(
+          exception,
+          stackTrace: stackTrace,
+        );
+      }
 
-        if (month == null || month.missingReadings) {
-          //request readings
+      initialised = true;
+      notifyListeners();
+    } else {
+      //already have local data
+      initialised = true;
+      notifyListeners();
+    }
+
+    // //*****get data for months */
+    bool stillHaveData = true;
+    while (stillHaveData) {
+      stillHaveData = false;
+
+      var endOfLastMonth =
+          DateTime(currentDate.year, currentDate.month, 0, 00, 00);
+      var beginningOfLastMonth =
+          DateTime(endOfLastMonth.year, endOfLastMonth.month, 1, 00, 00);
+      var month = monthsCache.firstWhere(
+          (m) =>
+              m.begin.year == beginningOfLastMonth.year &&
+              m.begin.month == beginningOfLastMonth.month,
+          orElse: () => null);
+
+      if (month == null || month.missingReadings) {
+        //request readings
+        try {
           var data = await octopusEnergyClient
               .getConsumtion(apiKey, meterPoint, meter,
                   periodFrom: beginningOfLastMonth, periodTo: endOfLastMonth)
               .timeout(Duration(seconds: timeoutDuration));
-
           if (data != null && data.length > 0) {
             consumption.addAll(data);
             readingRepo.saveAll(data);
             stillHaveData = true;
           }
+        } on TimeoutException catch (_) {
+          timeoutError = true;
+        } catch (exception, stackTrace) {
+          loadingData = false;
+          Sentry.captureException(
+            exception,
+            stackTrace: stackTrace,
+          );
         }
-
-        //update current month
-        currentDate = beginningOfLastMonth;
-        notifyListeners();
       }
-      // //*****get data for months */
 
-      // var data = await octopusEnergyClient
-      //     .getConsumtion(apiKey, meterPoint, meter)
-      //     .timeout(Duration(seconds: timeoutDuration));
-      // consumption.addAll(data);
-      // print('Got data');
+      if (month == null || month.missingPrices) {
+        //also try to get pricing information
+        try {
+          if (activeAgileTariff != null && activeAgileTariff.isNotEmpty) {
+            var priceData = await octopusEnergyClient
+                .getAgilePrices(
+                    tariffCode: activeAgileTariff,
+                    periodFrom: beginningOfLastMonth,
+                    periodTo: endOfLastMonth)
+                .timeout(Duration(seconds: timeoutDuration));
+            print('Got agile price data');
 
-      // var m = OctopusEneryClient.getEnergyMonthsFromConsumption(consumption);
-      // monthConsumption = m;
-    } on TimeoutException catch (_) {
-      timeoutError = true;
-    } catch (exception, stackTrace) {
-      loadingData = false;
-      Sentry.captureException(
-        exception,
-        stackTrace: stackTrace,
-      );
+            prices.addAll(priceData);
+            priceRepo.saveAll(priceData);
+          }
+        } on TimeoutException catch (_) {
+          timeoutError = true;
+        } catch (exception, stackTrace) {
+          loadingData = false;
+          Sentry.captureException(
+            exception,
+            stackTrace: stackTrace,
+          );
+        }
+      }
+
+      //update current month
+      currentDate = beginningOfLastMonth;
+      notifyListeners();
     }
+    // //*****get data for months */
 
     if (consumption == null || consumption.length == 0) {
       errorGettingData = true;
@@ -207,17 +249,8 @@ class OctopusManager extends ChangeNotifier {
       initialised = true;
     }
 
-    // await Future.delayed(
-    //     const Duration(seconds: 5), () => print("Finished delay"));
     loadingData = false;
     notifyListeners();
-    // return 'Got data';
-    getPricingInformation(
-        apiKey: apiKey,
-        accountId: accountId,
-        meterPoint: meterPoint,
-        meter: meter,
-        activeAgileTariff: activeAgileTariff);
   }
 
   getPricingInformation(

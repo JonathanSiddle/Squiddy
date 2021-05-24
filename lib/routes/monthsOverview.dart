@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -15,6 +17,7 @@ import 'package:squiddy/routes/monthDaysPage.dart';
 import 'package:squiddy/routes/settingPage.dart';
 import 'package:squiddy/widgets/SquiddyCard.dart';
 import 'package:squiddy/widgets/agilePriceList.dart';
+import 'package:squiddy/widgets/monthsOverview/OverviewSection.dart';
 import 'package:squiddy/widgets/responsiveWidget.dart';
 
 class MonthsOverview extends StatefulWidget {
@@ -79,7 +82,8 @@ class _MonthsOverviewState extends State<MonthsOverview> {
 
   @override
   Widget build(BuildContext context) {
-    var months = Provider.of<List<EnergyMonth>>(context);
+    var months =
+        Provider.of<Set<EnergyMonth>>(context).toList().reversed.toSet();
     print('months length: ${months.length}');
 
     return months == null && !octoManager.errorGettingData
@@ -177,7 +181,7 @@ class _MonthsOverviewState extends State<MonthsOverview> {
                   );
   }
 
-  Widget getLargeScreenView(List<EnergyMonth> months, {int gridSize = 2}) {
+  Widget getLargeScreenView(Set<EnergyMonth> months, {int gridSize = 2}) {
     return SafeArea(
       child: SmartRefresher(
         enablePullDown: true,
@@ -188,40 +192,7 @@ class _MonthsOverviewState extends State<MonthsOverview> {
           slivers: <Widget>[
             SliverList(
               delegate: SliverChildListDelegate([
-                Column(
-                  children: <Widget>[
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(10, 10, 10, 5),
-                      child: Row(
-                        children: <Widget>[
-                          Text(
-                            'Overview',
-                            style: TextStyle(fontSize: 48),
-                          ),
-                          octoManager.loadingData
-                              ? Padding(
-                                  padding: const EdgeInsets.only(left: 10.0),
-                                  child: CircularProgressIndicator(),
-                                )
-                              : Container(),
-                          Expanded(child: Container()),
-                          IconButton(
-                              icon: Icon(
-                                FontAwesomeIcons.cog,
-                                size: 36,
-                              ),
-                              onPressed: () {
-                                Navigator.push(
-                                    context,
-                                    SlideTopRoute(
-                                        page: SettingsPage(),
-                                        name: 'settings'));
-                              }),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+                OverviewSection(),
               ]),
             ),
             /********************
@@ -253,7 +224,7 @@ class _MonthsOverviewState extends State<MonthsOverview> {
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: gridSize, childAspectRatio: 21 / 9),
               delegate: SliverChildBuilderDelegate((context, index) {
-                var cMonth = months[index];
+                var cMonth = months.elementAt(index);
                 var displayFormat = DateFormat.yMMM();
 
                 var urlMonth = urlDate.format(cMonth.begin);
@@ -292,7 +263,7 @@ class _MonthsOverviewState extends State<MonthsOverview> {
     );
   }
 
-  Widget getSmallScreenView(List<EnergyMonth> months) {
+  Widget getSmallScreenView(Set<EnergyMonth> months) {
     return SafeArea(
       child: SmartRefresher(
         enablePullDown: true,
@@ -303,40 +274,7 @@ class _MonthsOverviewState extends State<MonthsOverview> {
           slivers: <Widget>[
             SliverList(
               delegate: SliverChildListDelegate([
-                Column(
-                  children: <Widget>[
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(10, 10, 10, 5),
-                      child: Row(
-                        children: <Widget>[
-                          Text(
-                            'Overview',
-                            style: TextStyle(fontSize: 48),
-                          ),
-                          octoManager.loadingData
-                              ? Padding(
-                                  padding: const EdgeInsets.only(left: 10.0),
-                                  child: CircularProgressIndicator(),
-                                )
-                              : Container(),
-                          Expanded(child: Container()),
-                          IconButton(
-                              icon: Icon(
-                                FontAwesomeIcons.cog,
-                                size: 36,
-                              ),
-                              onPressed: () {
-                                Navigator.push(
-                                    context,
-                                    SlideTopRoute(
-                                        page: SettingsPage(),
-                                        name: 'settings'));
-                              }),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+                OverviewSection(),
               ]),
             ),
             /********************
@@ -367,7 +305,7 @@ class _MonthsOverviewState extends State<MonthsOverview> {
             //working
             SliverList(
               delegate: SliverChildBuilderDelegate((context, index) {
-                var cMonth = months[index];
+                var cMonth = months.elementAt(index);
                 var displayFormat = DateFormat.yMMM();
 
                 var urlMonth = urlDate.format(cMonth.begin);

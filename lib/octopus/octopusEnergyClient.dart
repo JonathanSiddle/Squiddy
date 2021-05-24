@@ -67,7 +67,7 @@ class OctopusEneryClient {
 
     var consumption = await getConsumtion(apiKey, meterPoint, meter,
         periodFrom: lastMonth, periodTo: now);
-    var months = getEnergyMonthsFromConsumption(consumption.toList());
+    var months = getEnergyMonthsFromConsumption(consumption.toList()).toList();
 
     //potentially could be null, init to empty list if this is the case
     if (months == null) {
@@ -137,7 +137,7 @@ class OctopusEneryClient {
 
     var energyMonths = getEnergyMonthsFromConsumption(consumption.toList());
 
-    return energyMonths;
+    return energyMonths.toList();
   }
 
   Future<List<AgilePrice>> getAgilePrices(
@@ -171,11 +171,12 @@ class OctopusEneryClient {
     return agilePrices;
   }
 
-  static List<EnergyMonth> getEnergyMonthsFromConsumption(
+  static Set<EnergyMonth> getEnergyMonthsFromConsumption(
       List<EnergyConsumption> consumption,
-      {List<AgilePrice> prices}) {
+      {List<AgilePrice> prices,
+      Set<EnergyMonth> monthsCache}) {
     if (consumption == null || consumption.length <= 0) {
-      return [];
+      return Set<EnergyMonth>();
     } else {
       // consumption.sort((a, b) => a.intervalStart.compareTo(b.intervalStart));
       // prices.sort((a, b) => a.validFrom.compareTo(b.validFrom));
@@ -236,7 +237,52 @@ class OctopusEneryClient {
         currentMonth = c.intervalStart.month;
       }
 
-      return energyMonths.reversed.toList();
+      return energyMonths.reversed.toSet();
+    }
+  }
+
+  static EnergyMonth getEnergyMonthFromConsumption(
+      List<EnergyConsumption> consumption,
+      {List<AgilePrice> prices,
+      Set<EnergyMonth> monthsCache}) {
+    if (consumption == null || consumption.length <= 0) {
+      return EnergyMonth();
+    } else {
+      var dateFormat = DateFormat('HH:mm');
+      //assume consumption in reverse order, so flip to go from the earliest date first
+
+      var currentEnergyMonth = EnergyMonth();
+      var currentEnergyDay = EnergyDay();
+      currentEnergyDay.date = consumption[0].intervalStart;
+      currentEnergyMonth.begin = consumption[0].intervalStart;
+      currentEnergyMonth.days.add(currentEnergyDay);
+
+      var currentDay = currentEnergyMonth.begin.day;
+      consumption.removeRange(0, 0);
+
+      for (var c in consumption) {
+        var start = c.intervalStart;
+        var price = prices?.firstWhere(
+          (p) => p.validFrom == c.intervalStart,
+          orElse: () => null,
+        );
+
+        if (start.day == currentDay) {
+          currentEnergyDay.addConsumption(dateFormat.format(start), c);
+          currentEnergyDay.addPrice(dateFormat.format(start), price);
+        } else {
+          currentEnergyDay = EnergyDay();
+          currentEnergyMonth.days.add(currentEnergyDay);
+          currentEnergyDay.date = c.intervalStart;
+          var formattedDate = dateFormat.format(start);
+          currentEnergyDay.addConsumption(formattedDate, c);
+          currentEnergyDay.addPrice(dateFormat.format(start), price);
+        }
+
+        currentDay = c.intervalStart.day;
+      }
+
+      return currentEnergyMonth;
     }
   }
 }

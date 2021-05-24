@@ -14,12 +14,12 @@ class OverviewSummary extends StatelessWidget {
     double screenWidth = MediaQuery.of(context).size.width;
     // print('ScreenWidth: $screenWidth');
 
-    var months = Provider.of<List<EnergyMonth>>(context);
+    var months = Provider.of<Set<EnergyMonth>>(context);
     List<EnergyMonth> rawData;
     if (months.length >= 6) {
-      rawData = months.sublist(0, 6).reversed.toList();
+      rawData = months.take(6).toList().reversed.toList();
     } else {
-      rawData = months.reversed.toList();
+      rawData = months.toList().reversed.toList();
     }
 
     Map<String, num> data = {};
@@ -30,7 +30,8 @@ class OverviewSummary extends StatelessWidget {
     num recentConsumption;
     if (months.length > 6) {
       recentConsumption = months
-          .sublist(0, 6)
+          .take(6)
+          .toList()
           .reversed
           .toList()
           .fold(0, (prev, el) => prev + el.totalConsumption);
