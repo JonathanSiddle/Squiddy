@@ -23,7 +23,7 @@ class OctopusManager extends ChangeNotifier {
   bool logErrors = false;
   SquiddyLogger logger;
 
-  String apiKey;
+  // String apiKey;
   OctopusEneryClient octopusEnergyClient;
   EnergyAccount account;
   var consumption = SplayTreeSet<EnergyConsumption>();
@@ -55,19 +55,19 @@ class OctopusManager extends ChangeNotifier {
     }
   }
 
-  Set<EnergyMonth> get monthConsumption {
-    print('Calling monthConsumption');
-    if (loadingData) {
-      var consList = consumption.toList();
-      monthsCache = OctopusEneryClient.getEnergyMonthsFromConsumption(
-        consList,
-        prices: prices.toList(),
-      );
-      return monthsCache;
-    }
+  // Set<EnergyMonth> get monthConsumption {
+  //   print('Calling monthConsumption');
+  //   // if (loadingData) {
+  //   var consList = consumption.toList();
+  //   monthsCache = OctopusEneryClient.getEnergyMonthsFromConsumption(
+  //     consList,
+  //     prices: prices.toList(),
+  //   );
+  //   return monthsCache;
+  //   // }
 
-    return monthsCache;
-  }
+  //   // return monthsCache;
+  // }
 
   List<AgilePrice> get currentAgilePrices {
     var currentDateTime = dateTimeFetcher();
@@ -84,6 +84,7 @@ class OctopusManager extends ChangeNotifier {
       void Function(EnergyAccount) updateAccountSettings,
       DateTime Function() currentDateFetcher =
           DefaultCurrentDateTimeFetcher}) async {
+    print('Started initing data');
     loadingData = true;
     initialised = false;
     errorGettingData = false;
@@ -173,6 +174,19 @@ class OctopusManager extends ChangeNotifier {
       notifyListeners();
     }
 
+    monthsCache = OctopusEneryClient.getEnergyMonthsFromConsumption(
+      consumption.toList(),
+      prices: prices.toList(),
+    );
+
+    notifyListeners();
+    print('Finished initing data');
+    await getDataForPreviousMonths(
+        currentDate, apiKey, meterPoint, meter, activeAgileTariff);
+  }
+
+  getDataForPreviousMonths(DateTime currentDate, String apiKey,
+      String meterPoint, String meter, String activeAgileTariff) async {
     // //*****get data for months */
     bool stillHaveData = true;
     while (stillHaveData) {
@@ -200,8 +214,9 @@ class OctopusManager extends ChangeNotifier {
             readingRepo.saveAll(data);
             stillHaveData = true;
           }
-        } on TimeoutException catch (_) {
-          timeoutError = true;
+          // } on TimeoutException catch (_) {
+          //   timeoutError = true;
+          // }
         } catch (exception, stackTrace) {
           loadingData = false;
           Sentry.captureException(
@@ -226,8 +241,9 @@ class OctopusManager extends ChangeNotifier {
             prices.addAll(priceData);
             priceRepo.saveAll(priceData);
           }
-        } on TimeoutException catch (_) {
-          timeoutError = true;
+          // } on TimeoutException catch (_) {
+          //   timeoutError = true;
+          // }
         } catch (exception, stackTrace) {
           loadingData = false;
           Sentry.captureException(
@@ -239,9 +255,12 @@ class OctopusManager extends ChangeNotifier {
 
       //update current month
       currentDate = beginningOfLastMonth;
+      monthsCache = OctopusEneryClient.getEnergyMonthsFromConsumption(
+        consumption.toList(),
+        prices: prices.toList(),
+      );
       notifyListeners();
     }
-    // //*****get data for months */
 
     if (consumption == null || consumption.length == 0) {
       errorGettingData = true;
@@ -250,6 +269,10 @@ class OctopusManager extends ChangeNotifier {
     }
 
     loadingData = false;
+    monthsCache = OctopusEneryClient.getEnergyMonthsFromConsumption(
+      consumption.toList(),
+      prices: prices.toList(),
+    );
     notifyListeners();
   }
 

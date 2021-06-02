@@ -112,6 +112,7 @@ class _MyAppState extends State<MyApp> {
   void didChangeDependencies() {
     settings = Provider.of<SettingsManager>(context, listen: true);
     octoManager = Provider.of<OctopusManager>(context);
+
     if (settings.accountDetailsSet && settings.validated) {
       if (octoManager != null &&
           !octoManager.initialised &&
@@ -178,23 +179,9 @@ class _MyAppState extends State<MyApp> {
               navigatorObservers: <NavigatorObserver>[],
               home: (settingsManager.accountDetailsSet &&
                       settingsManager.validated)
-                  ? Consumer<OctopusManager>(
-                      builder: (_, om, child) {
-                        return Scaffold(
-                          appBar: null,
-                          body: om.initialised && !om.errorGettingData
-                              ? ProxyProvider<OctopusManager, Set<EnergyMonth>>(
-                                  update: (_, om, __) => om.monthConsumption,
-                                  child: MonthsOverview(),
-                                )
-                              : om.timeoutError
-                                  ? timeoutErrorView()
-                                  : om.errorGettingData
-                                      ? errorView(settingsManager)
-                                      : Center(
-                                          child: CircularProgressIndicator()),
-                        );
-                      },
+                  ? Scaffold(
+                      appBar: null,
+                      body: MonthsOverview(),
                     )
                   : Scaffold(
                       body: BootStrap(),

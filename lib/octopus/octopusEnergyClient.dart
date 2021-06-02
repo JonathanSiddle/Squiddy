@@ -241,6 +241,54 @@ class OctopusEneryClient {
     }
   }
 
+  static EnergyMonth getSingleMonthFromConsumption(
+      List<EnergyConsumption> consumption,
+      List<AgilePrice> prices,
+      int year,
+      int month) {
+    if (consumption == null || consumption.length <= 0) {
+      return EnergyMonth();
+    } else {
+      var dateFormat = DateFormat('HH:mm');
+      //remove any readings not from the current month...just in case
+      consumption.removeWhere((e) =>
+          e.intervalStart.month != month && e.intervalStart.year == year);
+
+      // var consump = consumption.toList().reversed.toList();
+      var currentEnergyMonth = EnergyMonth();
+      var currentEnergyDay = EnergyDay();
+      currentEnergyDay.date = consumption[0].intervalStart;
+      currentEnergyMonth.begin = consumption[0].intervalStart;
+      currentEnergyMonth.days.add(currentEnergyDay);
+
+      var currentDay = currentEnergyMonth.begin.day;
+      consumption.removeRange(0, 0);
+
+      for (var c in consumption) {
+        var start = c.intervalStart;
+        var price = prices?.firstWhere(
+          (p) => p.validFrom == c.intervalStart,
+          orElse: () => null,
+        );
+
+        if (start.day == currentDay) {
+          currentEnergyDay.addConsumption(dateFormat.format(start), c);
+          currentEnergyDay.addPrice(dateFormat.format(start), price);
+        } else {
+          currentEnergyDay = EnergyDay();
+          currentEnergyMonth.days.add(currentEnergyDay);
+          currentEnergyDay.date = c.intervalStart;
+
+          var formattedDate = dateFormat.format(start);
+          currentEnergyDay.addConsumption(formattedDate, c);
+          currentEnergyDay.addPrice(dateFormat.format(start), price);
+        }
+      }
+
+      return currentEnergyMonth;
+    }
+  }
+
   static EnergyMonth getEnergyMonthFromConsumption(
       List<EnergyConsumption> consumption,
       {List<AgilePrice> prices,

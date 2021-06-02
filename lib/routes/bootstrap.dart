@@ -285,6 +285,8 @@ class _BootStrapPageState extends State<BootStrap> {
                                         }
                                         //make sure octomanager re-inits data with new settings
                                         octopusManager.initData(
+                                            activeAgileTariff: settingsManager
+                                                .activeAgileTariff,
                                             apiKey: settingsManager.apiKey,
                                             accountId: settingsManager.apiKey,
                                             meterPoint:

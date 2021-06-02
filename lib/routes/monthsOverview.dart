@@ -1,5 +1,3 @@
-import 'dart:collection';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -8,17 +6,12 @@ import 'package:provider/provider.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:squiddy/Charts/overviewSummary.dart';
 import 'package:squiddy/Theme/SquiddyTheme.dart';
-import 'package:squiddy/Util/SlideRoute.dart';
 import 'package:squiddy/octopus/OctopusManager.dart';
 import 'package:squiddy/octopus/dataClasses/ElectricityAccount.dart';
-import 'package:squiddy/octopus/dataClasses/EnergyMonth.dart';
 import 'package:squiddy/octopus/settingsManager.dart';
-import 'package:squiddy/routes/monthDaysPage.dart';
-import 'package:squiddy/routes/settingPage.dart';
-import 'package:squiddy/widgets/SquiddyCard.dart';
+import 'package:squiddy/widgets/MonthCards.dart';
 import 'package:squiddy/widgets/agilePriceList.dart';
 import 'package:squiddy/widgets/monthsOverview/OverviewSection.dart';
-import 'package:squiddy/widgets/responsiveWidget.dart';
 
 class MonthsOverview extends StatefulWidget {
   MonthsOverview();
@@ -28,7 +21,66 @@ class MonthsOverview extends StatefulWidget {
 }
 
 class _MonthsOverviewState extends State<MonthsOverview> {
-  RefreshController _refreshController =
+  final stringList = {
+    'Test1',
+    'Test2',
+    'Test3',
+    'Test4',
+    'Test5',
+    'Test6',
+    'Test7',
+    'Test8',
+    'Test9',
+    'Test10',
+    'Test11',
+    'Test12',
+    'Test13',
+    'Test14',
+    'Test15',
+    'Test16',
+    'Test17',
+    'Test18',
+    'Test19',
+    'Test20',
+    'Test21',
+    'Test22',
+    'Test23',
+    'Test24',
+    'Test25',
+    'Test26',
+    'Test27',
+    'Test28',
+    'Test29',
+    'Test30',
+    'Test31',
+    'Test32',
+    'Test33',
+    'Test34',
+    'Test35',
+    'Test36',
+    'Test37',
+    'Test38',
+    'Test39',
+    'Test40',
+    'Test41',
+    'Test42',
+    'Test43',
+    'Test44',
+    'Test45',
+    'Test46',
+    'Test47',
+    'Test48',
+    'Test49',
+    'Test50',
+    'Test51',
+    'Test52',
+    'Test53',
+    'Test54',
+    'Test55',
+    'Test56',
+    'Test57'
+  };
+  final RefreshController _refreshController =
       RefreshController(initialRefresh: false);
   SettingsManager settings;
   OctopusManager octoManager;
@@ -49,9 +101,14 @@ class _MonthsOverviewState extends State<MonthsOverview> {
     _refreshController.refreshCompleted();
   }
 
+  void _onLoading() async {
+    _refreshController.loadComplete();
+  }
+
   refreshData() async {
     if (octoManager != null && settings != null) {
       await octoManager.initData(
+          activeAgileTariff: settings.activeAgileTariff,
           apiKey: settings.apiKey,
           accountId: settings.accountId,
           meterPoint: settings.meterPoint,
@@ -76,19 +133,16 @@ class _MonthsOverviewState extends State<MonthsOverview> {
     }
   }
 
-  void _onLoading() async {
-    _refreshController.loadComplete();
-  }
-
   @override
   Widget build(BuildContext context) {
-    var months =
-        Provider.of<Set<EnergyMonth>>(context).toList().reversed.toSet();
-    print('months length: ${months.length}');
+    var initialised = Provider.of<OctopusManager>(context).initialised;
+    var errorGettingData =
+        Provider.of<OctopusManager>(context).errorGettingData;
+    var timeoutError = Provider.of<OctopusManager>(context).timeoutError;
 
-    return months == null && !octoManager.errorGettingData
+    return !initialised && !errorGettingData
         ? Center(child: CircularProgressIndicator())
-        : months.length == 0 && octoManager.timeoutError
+        : initialised && timeoutError
             ? Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -141,7 +195,8 @@ class _MonthsOverviewState extends State<MonthsOverview> {
                   )
                 ],
               )
-            : months.length == 0 || octoManager.errorGettingData
+            : octoManager.consumption.length == 0 ||
+                    octoManager.errorGettingData
                 ? Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -173,172 +228,59 @@ class _MonthsOverviewState extends State<MonthsOverview> {
                 /**********************
                  *Main area section if all goes well...
                 ***********************/
-                : ResponsiveWidget(
-                    smallScreen: getSmallScreenView(months),
-                    mediumScreen: getLargeScreenView(months, gridSize: 2),
-                    largeScreen: getLargeScreenView(months, gridSize: 3),
-                    exLargeScreen: getLargeScreenView(months, gridSize: 4),
+                : SafeArea(
+                    child: SmartRefresher(
+                      enablePullDown: true,
+                      controller: _refreshController,
+                      onRefresh: _onRefresh,
+                      onLoading: _onLoading,
+                      child: CustomScrollView(
+                        slivers: <Widget>[
+                          SliverList(
+                            delegate: SliverChildListDelegate([
+                              OverviewSection(),
+                            ]),
+                          ),
+                          // /********************
+                          //  * Agile price section
+                          //  *******************/
+                          // What will become the new agile price section
+                          settings.showAgilePrices
+                              ? SliverToBoxAdapter(
+                                  child: AgilePriceList(),
+                                )
+                              : SliverToBoxAdapter(
+                                  child: Container(
+                                    height: 10,
+                                  ),
+                                ),
+                          // SliverList(
+                          //   delegate: SliverChildListDelegate([
+                          //     Column(
+                          //       children: <Widget>[
+                          //         Padding(
+                          //           padding: const EdgeInsets.all(10.0),
+                          //           child: OverviewSummary(),
+                          //         ),
+                          //       ],
+                          //     ),
+                          //   ]),
+                          // ),
+                          /*
+                          * Main month card section
+                          */
+                          MonthCards(),
+                          SliverList(
+                            delegate:
+                                SliverChildBuilderDelegate((context, index) {
+                              var string = stringList.toList()[index];
+                              return Container(child: Text(string));
+                            }, childCount: stringList.length),
+                          )
+                          // MonthCards(),
+                        ],
+                      ),
+                    ),
                   );
-  }
-
-  Widget getLargeScreenView(Set<EnergyMonth> months, {int gridSize = 2}) {
-    return SafeArea(
-      child: SmartRefresher(
-        enablePullDown: true,
-        controller: _refreshController,
-        onRefresh: _onRefresh,
-        onLoading: _onLoading,
-        child: CustomScrollView(
-          slivers: <Widget>[
-            SliverList(
-              delegate: SliverChildListDelegate([
-                OverviewSection(),
-              ]),
-            ),
-            /********************
-                           * Agile price section
-                           *******************/
-            //What will become the new agile price section
-            settings.showAgilePrices
-                ? SliverToBoxAdapter(
-                    child: AgilePriceList(),
-                  )
-                : SliverToBoxAdapter(
-                    child: Container(
-                      height: 10,
-                    ),
-                  ),
-            SliverList(
-              delegate: SliverChildListDelegate([
-                Column(
-                  children: <Widget>[
-                    Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: OverviewSummary(),
-                    ),
-                  ],
-                ),
-              ]),
-            ),
-            SliverGrid(
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: gridSize, childAspectRatio: 21 / 9),
-              delegate: SliverChildBuilderDelegate((context, index) {
-                var cMonth = months.elementAt(index);
-                var displayFormat = DateFormat.yMMM();
-
-                var urlMonth = urlDate.format(cMonth.begin);
-                var monthDays = cMonth.days;
-
-                Map<String, num> data = {};
-                monthDays.forEach(
-                    (d) => data[d.date.day.toString()] = d.totalConsumption);
-                return IntrinsicHeight(
-                  child: Container(
-                    child: SquiddyCard(
-                      graphData: data,
-                      onTap: () {
-                        Navigator.push(
-                            context,
-                            SlideLeftRoute(
-                                name: '/monthDays/$urlMonth',
-                                page: Provider(
-                                    create: (_) => cMonth,
-                                    child: MonthDaysPage())));
-                      },
-                      color: SquiddyTheme.squiddyPrimary,
-                      inkColor: SquiddyTheme.squiddyPrimary[300],
-                      title: displayFormat.format(cMonth.begin),
-                      total: '${cMonth.totalConsumption.toStringAsFixed(2)}kWh',
-                      totalCost:
-                          '${cMonth.totalPricePounds.toStringAsFixed(2)}',
-                    ),
-                  ),
-                );
-              }, childCount: months.length),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget getSmallScreenView(Set<EnergyMonth> months) {
-    return SafeArea(
-      child: SmartRefresher(
-        enablePullDown: true,
-        controller: _refreshController,
-        onRefresh: _onRefresh,
-        onLoading: _onLoading,
-        child: CustomScrollView(
-          slivers: <Widget>[
-            SliverList(
-              delegate: SliverChildListDelegate([
-                OverviewSection(),
-              ]),
-            ),
-            /********************
-                           * Agile price section
-                           *******************/
-            //What will become the new agile price section
-            settings.showAgilePrices
-                ? SliverToBoxAdapter(
-                    child: AgilePriceList(),
-                  )
-                : SliverToBoxAdapter(
-                    child: Container(
-                      height: 10,
-                    ),
-                  ),
-            SliverList(
-              delegate: SliverChildListDelegate([
-                Column(
-                  children: <Widget>[
-                    Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: OverviewSummary(),
-                    ),
-                  ],
-                ),
-              ]),
-            ),
-            //working
-            SliverList(
-              delegate: SliverChildBuilderDelegate((context, index) {
-                var cMonth = months.elementAt(index);
-                var displayFormat = DateFormat.yMMM();
-
-                var urlMonth = urlDate.format(cMonth.begin);
-                var monthDays = cMonth.days;
-
-                Map<String, num> data = {};
-                monthDays.forEach(
-                    (d) => data[d.date.day.toString()] = d.totalConsumption);
-                return IntrinsicHeight(
-                  child: Container(
-                    child: SquiddyCard(
-                      graphData: data,
-                      onTap: () {
-                        Navigator.push(
-                            context,
-                            SlideLeftRoute(
-                                name: '/monthDays/$urlMonth',
-                                page: Provider(
-                                    create: (_) => cMonth,
-                                    child: MonthDaysPage())));
-                      },
-                      color: SquiddyTheme.squiddyPrimary,
-                      inkColor: SquiddyTheme.squiddyPrimary[300],
-                      title: displayFormat.format(cMonth.begin),
-                      total: '${cMonth.totalConsumption.toStringAsFixed(2)}kWh',
-                    ),
-                  ),
-                );
-              }, childCount: months.length),
-            )
-          ],
-        ),
-      ),
-    );
   }
 }
