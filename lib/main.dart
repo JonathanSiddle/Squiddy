@@ -17,7 +17,6 @@ import 'package:squiddy/octopus/OctopusManager.dart';
 import 'package:squiddy/octopus/dataClasses/AgilePrice.dart';
 import 'package:squiddy/octopus/dataClasses/ElectricityAccount.dart';
 import 'package:squiddy/octopus/dataClasses/EnergyConsumption.dart';
-import 'package:squiddy/octopus/dataClasses/EnergyMonth.dart';
 import 'package:squiddy/octopus/secureStore.dart';
 import 'package:squiddy/octopus/settingsManager.dart';
 import 'package:squiddy/routes/bootstrap.dart';

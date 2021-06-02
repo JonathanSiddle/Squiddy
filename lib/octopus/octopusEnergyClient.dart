@@ -242,7 +242,7 @@ class OctopusEneryClient {
   }
 
   static EnergyMonth getSingleMonthFromConsumption(
-      List<EnergyConsumption> consumption,
+      Set<EnergyConsumption> consumption,
       List<AgilePrice> prices,
       int year,
       int month) {
@@ -253,16 +253,17 @@ class OctopusEneryClient {
       //remove any readings not from the current month...just in case
       consumption.removeWhere((e) =>
           e.intervalStart.month != month && e.intervalStart.year == year);
+      var conList = consumption.toList();
 
       // var consump = consumption.toList().reversed.toList();
       var currentEnergyMonth = EnergyMonth();
       var currentEnergyDay = EnergyDay();
-      currentEnergyDay.date = consumption[0].intervalStart;
-      currentEnergyMonth.begin = consumption[0].intervalStart;
+      currentEnergyDay.date = conList[0].intervalStart;
+      currentEnergyMonth.begin = conList[0].intervalStart;
       currentEnergyMonth.days.add(currentEnergyDay);
 
       var currentDay = currentEnergyMonth.begin.day;
-      consumption.removeRange(0, 0);
+      conList.removeRange(0, 0);
 
       for (var c in consumption) {
         var start = c.intervalStart;
