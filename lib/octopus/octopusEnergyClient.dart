@@ -83,7 +83,7 @@ class OctopusEneryClient {
   Future<Set<EnergyConsumption>> getConsumtion(
       String apiKey, String meterPoint, String meter,
       {DateTime periodFrom, DateTime periodTo}) async {
-    var fm = DateFormat('yyyy-MM-ddTHH:mm:ss');
+    var fm = DateFormat('yyyy-MM-ddTHH:mm');
     String toFromString;
     if (periodFrom != null) {
       toFromString = 'period_from=${fm.format(periodFrom)}Z';
@@ -95,10 +95,9 @@ class OctopusEneryClient {
 
     http.Response response;
     try {
-      response = await http.get(
-          Uri.parse(
-              'https://api.octopus.energy/v1/electricity-meter-points/$meterPoint/meters/$meter/consumption/?page_size=25000&${toFromString ?? ''}'),
-          headers: getHeaders(apiKey));
+      var url =
+          'https://api.octopus.energy/v1/electricity-meter-points/$meterPoint/meters/$meter/consumption/?page_size=25000&${toFromString ?? ''}';
+      response = await http.get(Uri.parse(url), headers: getHeaders(apiKey));
     } catch (e) {
       return null;
     }

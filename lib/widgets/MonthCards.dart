@@ -8,30 +8,47 @@ import 'package:squiddy/octopus/dataClasses/EnergyMonth.dart';
 import 'package:squiddy/octopus/settingsManager.dart';
 import 'package:squiddy/routes/monthDaysPage.dart';
 import 'package:squiddy/widgets/SquiddyCard.dart';
-import 'package:squiddy/widgets/responsiveWidget.dart';
 
-class MonthCards extends StatelessWidget {
+class MonthCards extends StatefulWidget {
+  @override
+  _MonthCardsState createState() => _MonthCardsState();
+}
+
+class _MonthCardsState extends State<MonthCards> {
   final urlDate = DateFormat('yyyy/MM');
+
   SettingsManager settings;
   OctopusManager octoManager;
+  Set<EnergyMonth> monthsCache;
+  bool loading;
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // settings = Provider.of<SettingsManager>(context);
+    // octoManager = Provider.of<OctopusManager>(context);
+  }
+
+  @override
+  //This method is currently being used inside a custom scroll view
+  //so it needs to return a sliver
   Widget build(BuildContext context) {
+    loading = context.select((OctopusManager man) => man.loadingData);
+    monthsCache = context.select((OctopusManager man) => man.monthsCache);
     // print('Starting to build months cache');
     // var initialised = Provider.of<OctopusManager>(context).initialised;
-    final loading = context.select((OctopusManager man) => man.loadingData);
-    final monthsCache = context.select((OctopusManager man) => man.monthsCache);
 
-    return SliverList(
-      delegate: SliverChildListDelegate([
-        Column(
-          children: [
-            Text('Loading: ${loading.toString()}'),
-            Text('Months: ${monthsCache.length}'),
-          ],
-        )
-      ]),
-    );
+    // return SliverList(
+    //   delegate: SliverChildListDelegate([
+    //     Column(
+    //       children: [
+    //         Text('Loading: ${loading.toString()}'),
+    //         Text('Months: ${monthsCache.length}'),
+    //       ],
+    //     )
+    //   ]),
+    // );
 
     // return ResponsiveWidget(
     //   smallScreen: getSmallScreenView(months),
@@ -40,6 +57,8 @@ class MonthCards extends StatelessWidget {
     //   exLargeScreen: getLargeScreenView(months, gridSize: 4),
     // );
     // return getLargeScreenView(months, gridSize: 3);
+    // return getSmallScreenView(monthsCache);
+    return getLargeScreenView(monthsCache, gridSize: 3);
   }
 
   Widget getLargeScreenView(Set<EnergyMonth> months, {int gridSize = 2}) {
@@ -92,23 +111,21 @@ class MonthCards extends StatelessWidget {
         Map<String, num> data = {};
         monthDays
             .forEach((d) => data[d.date.day.toString()] = d.totalConsumption);
-        return IntrinsicHeight(
-          child: Container(
-            child: SquiddyCard(
-              graphData: data,
-              onTap: () {
-                Navigator.push(
-                    context,
-                    SlideLeftRoute(
-                        name: '/monthDays/$urlMonth',
-                        page: Provider(
-                            create: (_) => cMonth, child: MonthDaysPage())));
-              },
-              color: SquiddyTheme.squiddyPrimary,
-              inkColor: SquiddyTheme.squiddyPrimary[300],
-              title: displayFormat.format(cMonth.begin),
-              total: '${cMonth.totalConsumption.toStringAsFixed(2)}kWh',
-            ),
+        return Container(
+          child: SquiddyCard(
+            graphData: data,
+            onTap: () {
+              Navigator.push(
+                  context,
+                  SlideLeftRoute(
+                      name: '/monthDays/$urlMonth',
+                      page: Provider(
+                          create: (_) => cMonth, child: MonthDaysPage())));
+            },
+            color: SquiddyTheme.squiddyPrimary,
+            inkColor: SquiddyTheme.squiddyPrimary[300],
+            title: displayFormat.format(cMonth.begin),
+            total: '${cMonth.totalConsumption.toStringAsFixed(2)}kWh',
           ),
         );
       }, childCount: months.length),

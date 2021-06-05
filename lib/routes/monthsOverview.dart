@@ -21,65 +21,6 @@ class MonthsOverview extends StatefulWidget {
 }
 
 class _MonthsOverviewState extends State<MonthsOverview> {
-  final stringList = {
-    'Test1',
-    'Test2',
-    'Test3',
-    'Test4',
-    'Test5',
-    'Test6',
-    'Test7',
-    'Test8',
-    'Test9',
-    'Test10',
-    'Test11',
-    'Test12',
-    'Test13',
-    'Test14',
-    'Test15',
-    'Test16',
-    'Test17',
-    'Test18',
-    'Test19',
-    'Test20',
-    'Test21',
-    'Test22',
-    'Test23',
-    'Test24',
-    'Test25',
-    'Test26',
-    'Test27',
-    'Test28',
-    'Test29',
-    'Test30',
-    'Test31',
-    'Test32',
-    'Test33',
-    'Test34',
-    'Test35',
-    'Test36',
-    'Test37',
-    'Test38',
-    'Test39',
-    'Test40',
-    'Test41',
-    'Test42',
-    'Test43',
-    'Test44',
-    'Test45',
-    'Test46',
-    'Test47',
-    'Test48',
-    'Test49',
-    'Test50',
-    'Test51',
-    'Test52',
-    'Test53',
-    'Test54',
-    'Test55',
-    'Test56',
-    'Test57'
-  };
   final RefreshController _refreshController =
       RefreshController(initialRefresh: false);
   SettingsManager settings;
@@ -270,13 +211,6 @@ class _MonthsOverviewState extends State<MonthsOverview> {
                           * Main month card section
                           */
                           MonthCards(),
-                          SliverList(
-                            delegate:
-                                SliverChildBuilderDelegate((context, index) {
-                              var string = stringList.toList()[index];
-                              return Container(child: Text(string));
-                            }, childCount: stringList.length),
-                          )
                           // MonthCards(),
                         ],
                       ),

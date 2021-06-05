@@ -28,7 +28,11 @@ class OctopusManager extends ChangeNotifier {
   EnergyAccount account;
   var consumption = SplayTreeSet<EnergyConsumption>();
   var prices = SplayTreeSet<AgilePrice>();
-  Set<EnergyMonth> monthsCache = HashSet<EnergyMonth>();
+  Set<EnergyMonth> _monthsCache = HashSet<EnergyMonth>();
+
+  Set<EnergyMonth> get monthsCache {
+    return _monthsCache.toList().reversed.toSet();
+  }
 
   OctopusManager(
       {this.readingRepo,
@@ -135,7 +139,7 @@ class OctopusManager extends ChangeNotifier {
       } on TimeoutException catch (_) {
         timeoutError = true;
       } catch (exception, stackTrace) {
-        loadingData = false;
+        // loadingData = false;
         Sentry.captureException(
           exception,
           stackTrace: stackTrace,
@@ -157,7 +161,7 @@ class OctopusManager extends ChangeNotifier {
       } on TimeoutException catch (_) {
         timeoutError = true;
       } catch (exception, stackTrace) {
-        loadingData = false;
+        // loadingData = false;
         Sentry.captureException(
           exception,
           stackTrace: stackTrace,
@@ -165,10 +169,11 @@ class OctopusManager extends ChangeNotifier {
       }
     }
 
-    monthsCache = OctopusEneryClient.getEnergyMonthsFromConsumption(
-      consumption.toList(),
-      prices: prices.toList(),
-    );
+    // monthsCache = OctopusEneryClient.getEnergyMonthsFromConsumption(
+    //   consumption.toList(),
+    //   prices: prices.toList(),
+    // );
+    _monthsCache = await getEnergyMonths(consumption, prices);
 
     initialised = true;
     notifyListeners();
@@ -182,14 +187,13 @@ class OctopusManager extends ChangeNotifier {
     // //*****get data for months */
     bool stillHaveData = true;
     while (stillHaveData) {
-      Set<EnergyConsumption> currentMonthConsumption;
-      List<AgilePrice> currentMonthPrices;
       stillHaveData = false;
 
       var endOfLastMonth =
           DateTime(currentDate.year, currentDate.month, 0, 00, 00);
       var beginningOfLastMonth =
           DateTime(endOfLastMonth.year, endOfLastMonth.month, 1, 00, 00);
+      var periodTo = DateTime(currentDate.year, currentDate.month, 1, 00, 00);
       var month = monthsCache.firstWhere(
           (m) =>
               m.begin.year == beginningOfLastMonth.year &&
@@ -201,11 +205,9 @@ class OctopusManager extends ChangeNotifier {
         try {
           var data = await octopusEnergyClient
               .getConsumtion(apiKey, meterPoint, meter,
-                  periodFrom: beginningOfLastMonth, periodTo: endOfLastMonth)
+                  periodFrom: beginningOfLastMonth, periodTo: periodTo)
               .timeout(Duration(seconds: timeoutDuration));
           if (data != null && data.length > 0) {
-            currentMonthConsumption = data;
-
             consumption.addAll(data);
             readingRepo.saveAll(data);
             stillHaveData = true;
@@ -214,7 +216,7 @@ class OctopusManager extends ChangeNotifier {
           //   timeoutError = true;
           // }
         } catch (exception, stackTrace) {
-          loadingData = false;
+          // loadingData = false;
           Sentry.captureException(
             exception,
             stackTrace: stackTrace,
@@ -234,8 +236,6 @@ class OctopusManager extends ChangeNotifier {
                 .timeout(Duration(seconds: timeoutDuration));
 
             if (priceData != null && priceData.isNotEmpty) {
-              currentMonthPrices = priceData;
-
               prices.addAll(priceData);
               priceRepo.saveAll(priceData);
             }
@@ -244,7 +244,7 @@ class OctopusManager extends ChangeNotifier {
           //   timeoutError = true;
           // }
         } catch (exception, stackTrace) {
-          loadingData = false;
+          // loadingData = false;
           Sentry.captureException(
             exception,
             stackTrace: stackTrace,
@@ -254,17 +254,18 @@ class OctopusManager extends ChangeNotifier {
 
       //update current month
       currentDate = beginningOfLastMonth;
-      var newMonth = OctopusEneryClient.getSingleMonthFromConsumption(
-          currentMonthConsumption,
-          currentMonthPrices,
-          beginningOfLastMonth.year,
-          beginningOfLastMonth.month);
-      monthsCache = Set.from(monthsCache);
-      monthsCache.add(newMonth);
+      // var newMonth = OctopusEneryClient.getSingleMonthFromConsumption(
+      //     currentMonthConsumption,
+      //     currentMonthPrices,
+      //     beginningOfLastMonth.year,
+      //     beginningOfLastMonth.month);
+      // monthsCache = Set.from(monthsCache);
+      // monthsCache.add(newMonth);
       // monthsCache = OctopusEneryClient.getEnergyMonthsFromConsumption(
       //   consumption.toList(),
       //   prices: prices.toList(),
       // );
+      _monthsCache = await getEnergyMonths(consumption, prices);
       notifyListeners();
     }
 
@@ -275,11 +276,21 @@ class OctopusManager extends ChangeNotifier {
     }
 
     loadingData = false;
-    // monthsCache = OctopusEneryClient.getEnergyMonthsFromConsumption(
-    //   consumption.toList(),
-    //   prices: prices.toList(),
-    // );
+    _monthsCache = await getEnergyMonths(consumption, prices);
     notifyListeners();
+  }
+
+  Future<Set<EnergyMonth>> getEnergyMonths(
+      Set<EnergyConsumption> consumption, Set<AgilePrice> prices) async {
+    final completer = Completer<Set<EnergyMonth>>();
+    Function() _exec = () {
+      var val = OctopusEneryClient.getEnergyMonthsFromConsumption(
+          consumption.toList(),
+          prices: prices.toList());
+      return completer.complete(val);
+    };
+    _exec();
+    return completer.future;
   }
 
   // getPricingInformation(
