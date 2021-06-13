@@ -187,6 +187,8 @@ class OctopusManager extends ChangeNotifier {
     // //*****get data for months */
     bool stillHaveData = true;
     while (stillHaveData) {
+      Set<EnergyConsumption> currentMonthConsumption;
+      List<AgilePrice> currentMonthAgliePrices;
       stillHaveData = false;
 
       var endOfLastMonth =
@@ -207,11 +209,15 @@ class OctopusManager extends ChangeNotifier {
               .getConsumtion(apiKey, meterPoint, meter,
                   periodFrom: beginningOfLastMonth, periodTo: periodTo)
               .timeout(Duration(seconds: timeoutDuration));
-          if (data != null && data.length > 0) {
-            consumption.addAll(data);
-            readingRepo.saveAll(data);
-            stillHaveData = true;
-          }
+
+          //todo: uncomment this
+          // if (data != null && data.length > 0) {
+          //   currentMonthConsumption = data;
+          //   consumption.addAll(data);
+          //   readingRepo.saveAll(data);
+          stillHaveData = true;
+          // }
+
           // } on TimeoutException catch (_) {
           //   timeoutError = true;
           // }
@@ -235,10 +241,12 @@ class OctopusManager extends ChangeNotifier {
                     periodTo: endOfLastMonth)
                 .timeout(Duration(seconds: timeoutDuration));
 
-            if (priceData != null && priceData.isNotEmpty) {
-              prices.addAll(priceData);
-              priceRepo.saveAll(priceData);
-            }
+            //todo: uncomment this
+            // if (priceData != null && priceData.isNotEmpty) {
+            //   currentMonthAgliePrices = priceData;
+            //   prices.addAll(priceData);
+            //   priceRepo.saveAll(priceData);
+            // }
           }
           // } on TimeoutException catch (_) {
           //   timeoutError = true;
@@ -253,20 +261,22 @@ class OctopusManager extends ChangeNotifier {
       }
 
       //update current month
-      currentDate = beginningOfLastMonth;
+      //todo: uncomment/review this
+      // currentDate = beginningOfLastMonth;
       // var newMonth = OctopusEneryClient.getSingleMonthFromConsumption(
       //     currentMonthConsumption,
-      //     currentMonthPrices,
+      //     currentMonthAgliePrices,
       //     beginningOfLastMonth.year,
       //     beginningOfLastMonth.month);
       // monthsCache = Set.from(monthsCache);
       // monthsCache.add(newMonth);
+
       // monthsCache = OctopusEneryClient.getEnergyMonthsFromConsumption(
       //   consumption.toList(),
       //   prices: prices.toList(),
       // );
-      _monthsCache = await getEnergyMonths(consumption, prices);
-      notifyListeners();
+      // _monthsCache = await getEnergyMonths(consumption, prices);
+      // notifyListeners();
     }
 
     if (consumption == null || consumption.length == 0) {

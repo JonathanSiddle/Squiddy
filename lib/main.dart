@@ -108,7 +108,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   @override
-  void didChangeDependencies() {
+  void didChangeDependencies() async {
     settings = Provider.of<SettingsManager>(context, listen: true);
     octoManager = Provider.of<OctopusManager>(context);
 
@@ -173,6 +173,7 @@ class _MyAppState extends State<MyApp> {
                 : SystemUiOverlayStyle.light,
             child: MaterialApp(
               title: 'Squiddy',
+              showPerformanceOverlay: true,
               theme: theme, // home: ConsumptionList('Squiddy'),
               // need to return a widget that rebuilds
               navigatorObservers: <NavigatorObserver>[],
