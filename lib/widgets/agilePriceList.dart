@@ -49,7 +49,7 @@ class _AgilePriceListState extends State<AgilePriceList> {
         ),
         Padding(
             padding: const EdgeInsets.fromLTRB(10, 5, 10, 10),
-            child: octopusManager.loadingData
+            child: currentAgilePrices.length < 1
                 ? Shimmer.fromColors(
                     baseColor: Colors.black12,
                     highlightColor: Colors.white,
