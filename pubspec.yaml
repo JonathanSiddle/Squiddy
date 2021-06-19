@@ -41,6 +41,11 @@ dependencies:
   hive: ^2.0.4
   hive_flutter: ^1.0.0
   pedantic: ^1.11.0
+  #bloc test dependencies
+  bloc: ^6.1.3
+  flutter_bloc: ^6.1.3
+  rxdart: ^0.25.0
+  equatable: ^1.2.6
 
 dev_dependencies:
   flutter_test:

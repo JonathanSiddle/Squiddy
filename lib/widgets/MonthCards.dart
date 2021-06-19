@@ -8,6 +8,7 @@ import 'package:squiddy/octopus/dataClasses/EnergyMonth.dart';
 import 'package:squiddy/octopus/settingsManager.dart';
 import 'package:squiddy/routes/monthDaysPage.dart';
 import 'package:squiddy/widgets/SquiddyCard.dart';
+import 'package:squiddy/widgets/responsiveWidget.dart';
 
 class MonthCards extends StatefulWidget {
   @override
@@ -36,29 +37,13 @@ class _MonthCardsState extends State<MonthCards> {
   Widget build(BuildContext context) {
     loading = context.select((OctopusManager man) => man.loadingData);
     monthsCache = context.select((OctopusManager man) => man.monthsCache);
-    // print('Starting to build months cache');
-    // var initialised = Provider.of<OctopusManager>(context).initialised;
 
-    // return SliverList(
-    //   delegate: SliverChildListDelegate([
-    //     Column(
-    //       children: [
-    //         Text('Loading: ${loading.toString()}'),
-    //         Text('Months: ${monthsCache.length}'),
-    //       ],
-    //     )
-    //   ]),
-    // );
-
-    // return ResponsiveWidget(
-    //   smallScreen: getSmallScreenView(months),
-    //   mediumScreen: getLargeScreenView(months, gridSize: 2),
-    //   largeScreen: getLargeScreenView(months, gridSize: 3),
-    //   exLargeScreen: getLargeScreenView(months, gridSize: 4),
-    // );
-    // return getLargeScreenView(months, gridSize: 3);
-    // return getSmallScreenView(monthsCache);
-    return getLargeScreenView(monthsCache, gridSize: 3);
+    return ResponsiveSliverWidget(
+      smallScreen: getSmallScreenView(monthsCache),
+      mediumScreen: getLargeScreenView(monthsCache, gridSize: 2),
+      largeScreen: getLargeScreenView(monthsCache, gridSize: 3),
+      exLargeScreen: getLargeScreenView(monthsCache, gridSize: 4),
+    );
   }
 
   Widget getLargeScreenView(Set<EnergyMonth> months, {int gridSize = 2}) {

@@ -35,9 +35,9 @@ void main() async {
   //open boxes
   var readingBox =
       await Hive.openBox<EnergyConsumption>(SettingsManager.READING_BOX);
-  // readingBox.deleteFromDisk();
   var pricingBox = await Hive.openBox<AgilePrice>(SettingsManager.PRICE_BOX);
   // pricingBox.deleteFromDisk();
+  // readingBox.deleteFromDisk();
 
   //init error logging
   var sentryURL = environment['sentryURL'] ?? ' ';
@@ -173,7 +173,7 @@ class _MyAppState extends State<MyApp> {
                 : SystemUiOverlayStyle.light,
             child: MaterialApp(
               title: 'Squiddy',
-              showPerformanceOverlay: true,
+              // showPerformanceOverlay: true,
               theme: theme, // home: ConsumptionList('Squiddy'),
               // need to return a widget that rebuilds
               navigatorObservers: <NavigatorObserver>[],

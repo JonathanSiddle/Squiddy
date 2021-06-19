@@ -211,14 +211,13 @@ class OctopusManager extends ChangeNotifier {
               .timeout(Duration(seconds: timeoutDuration));
 
           //todo: uncomment this
-          // if (data != null && data.length > 0) {
-          //   currentMonthConsumption = data;
-          //   consumption.addAll(data);
-          //   readingRepo.saveAll(data);
-          stillHaveData = true;
-          // }
-
-          // } on TimeoutException catch (_) {
+          if (data != null && data.length > 0) {
+            currentMonthConsumption = data;
+            consumption.addAll(data);
+            readingRepo.saveAll(data);
+            stillHaveData = true;
+          }
+          // }  on TimeoutException catch (_) {
           //   timeoutError = true;
           // }
         } catch (exception, stackTrace) {
@@ -242,11 +241,11 @@ class OctopusManager extends ChangeNotifier {
                 .timeout(Duration(seconds: timeoutDuration));
 
             //todo: uncomment this
-            // if (priceData != null && priceData.isNotEmpty) {
-            //   currentMonthAgliePrices = priceData;
-            //   prices.addAll(priceData);
-            //   priceRepo.saveAll(priceData);
-            // }
+            if (priceData != null && priceData.isNotEmpty) {
+              currentMonthAgliePrices = priceData;
+              prices.addAll(priceData);
+              priceRepo.saveAll(priceData);
+            }
           }
           // } on TimeoutException catch (_) {
           //   timeoutError = true;
@@ -262,14 +261,13 @@ class OctopusManager extends ChangeNotifier {
 
       //update current month
       //todo: uncomment/review this
-      // currentDate = beginningOfLastMonth;
-      // var newMonth = OctopusEneryClient.getSingleMonthFromConsumption(
-      //     currentMonthConsumption,
-      //     currentMonthAgliePrices,
-      //     beginningOfLastMonth.year,
-      //     beginningOfLastMonth.month);
-      // monthsCache = Set.from(monthsCache);
-      // monthsCache.add(newMonth);
+      currentDate = beginningOfLastMonth;
+      var newMonth = OctopusEneryClient.getSingleMonthFromConsumption(
+          currentMonthConsumption,
+          currentMonthAgliePrices,
+          beginningOfLastMonth.year,
+          beginningOfLastMonth.month);
+      monthsCache.add(newMonth);
 
       // monthsCache = OctopusEneryClient.getEnergyMonthsFromConsumption(
       //   consumption.toList(),
