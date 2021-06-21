@@ -187,26 +187,12 @@ class _MonthsOverviewState extends State<MonthsOverview> {
                           //  *******************/
                           // What will become the new agile price section
                           settings.showAgilePrices
-                              ? SliverToBoxAdapter(
-                                  child: AgilePriceList(),
-                                )
+                              ? AgilePriceSection()
                               : SliverToBoxAdapter(
                                   child: Container(
                                     height: 10,
                                   ),
                                 ),
-                          // SliverList(
-                          //   delegate: SliverChildListDelegate([
-                          //     Column(
-                          //       children: <Widget>[
-                          //         Padding(
-                          //           padding: const EdgeInsets.all(10.0),
-                          //           child: OverviewSummary(),
-                          //         ),
-                          //       ],
-                          //     ),
-                          //   ]),
-                          // ),
                           /*
                           * Main month card section
                           */

@@ -18,7 +18,7 @@ class OverviewSection extends StatelessWidget {
           child: Row(
             children: <Widget>[
               Text(
-                'Overview',
+                'Squiddy',
                 style: TextStyle(fontSize: 48),
               ),
               loading

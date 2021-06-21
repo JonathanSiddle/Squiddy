@@ -38,7 +38,7 @@ class AgilePriceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 100,
+      width: 80,
       child: Card(
           color: getColour(price),
           elevation: 0,

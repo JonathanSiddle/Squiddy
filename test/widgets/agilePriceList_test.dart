@@ -28,7 +28,7 @@ main() {
                 create: (_) => settingsManager),
             ChangeNotifierProvider<OctopusManager>(create: (_) => octoManager),
           ],
-          child: AgilePriceList(),
+          child: AgilePriceSection(),
         ),
       ),
     );
