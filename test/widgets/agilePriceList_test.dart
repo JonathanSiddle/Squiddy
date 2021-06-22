@@ -8,7 +8,7 @@ import 'package:squiddy/octopus/octopusEnergyClient.dart';
 import 'package:squiddy/octopus/secureStore.dart';
 import 'package:squiddy/octopus/settingsManager.dart';
 import 'package:squiddy/widgets/agilePriceCard.dart';
-import 'package:squiddy/widgets/agilePriceList.dart';
+import 'package:squiddy/widgets/agilePriceSection.dart';
 
 import '../routes/mocks.dart';
 

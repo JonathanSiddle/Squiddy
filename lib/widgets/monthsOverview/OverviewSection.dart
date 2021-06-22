@@ -4,12 +4,18 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:squiddy/Util/SlideRoute.dart';
 import 'package:squiddy/octopus/OctopusManager.dart';
+import 'package:squiddy/octopus/settingsManager.dart';
 import 'package:squiddy/routes/settingPage.dart';
+import 'package:squiddy/widgets/agilePriceSection.dart';
+import 'package:squiddy/widgets/yesterdaySummarySection.dart';
 
 class OverviewSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final settings = Provider.of<SettingsManager>(context);
     final loading = Provider.of<OctopusManager>(context).loadingData;
+
+    var screenWidth = MediaQuery.of(context).size.width / 2;
 
     return Column(
       children: <Widget>[
@@ -37,9 +43,22 @@ class OverviewSection extends StatelessWidget {
                     Navigator.push(context,
                         SlideTopRoute(page: SettingsPage(), name: 'settings'));
                   }),
+              //Agile price and yesterday information section
             ],
           ),
         ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            settings.showAgilePrices
+                //todo fix this display for non-agile customers
+                ? Container(width: screenWidth, child: AgilePriceSection())
+                : Container(
+                    height: 10,
+                  ),
+            Container(width: screenWidth, child: YesterdaySummarySection())
+          ],
+        )
       ],
     );
   }

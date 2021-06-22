@@ -28,80 +28,67 @@ class _AgilePriceSectionState extends State<AgilePriceSection> {
   Widget build(BuildContext context) {
     var currentAgilePrices = octopusManager.currentAgilePrices;
 
-    return SliverList(
-      delegate: SliverChildListDelegate([
-        Container(
-          height: 300,
-          // width: 60,
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(10.0, 0, 10, 0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Current Prices',
-                          style: TextStyle(fontSize: 24),
-                        ),
-                        Tooltip(
-                          message: 'Hide or show in settings',
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
-                            child: Icon(FontAwesomeIcons.questionCircle),
-                          ),
-                        )
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        Text(
-                          'Yesterday',
-                          style: TextStyle(fontSize: 24),
-                        )
-                      ],
-                    )
-                  ],
+    return Container(
+      height: 300,
+      // width: 1200,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(10.0, 0, 10, 0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  'Current Prices',
+                  style: TextStyle(fontSize: 24),
                 ),
-              ),
-              Padding(
-                  padding: const EdgeInsets.fromLTRB(10, 5, 10, 10),
-                  child: currentAgilePrices.length < 1
-                      ? Shimmer.fromColors(
-                          baseColor: Colors.black12,
-                          highlightColor: Colors.white,
-                          child: Container(
-                            height: 100,
-                            child: Row(
-                              children: [
-                                AgilePriceCard(time: '...', price: 0),
-                                AgilePriceCard(time: '...', price: 0),
-                                AgilePriceCard(time: '...', price: 0),
-                                AgilePriceCard(time: '...', price: 0),
-                              ],
-                            ),
+                Tooltip(
+                  message: 'Hide or show in settings',
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
+                    child: Icon(FontAwesomeIcons.questionCircle),
+                  ),
+                )
+              ],
+            ),
+          ),
+          Padding(
+              padding: const EdgeInsets.fromLTRB(10, 5, 10, 10),
+              child: currentAgilePrices.length < 1
+                  //todo update loading style to new format
+                  ? Shimmer.fromColors(
+                      baseColor: Colors.black12,
+                      highlightColor: Colors.white,
+                      child: Container(
+                        height: 100,
+                        child: Row(
+                          children: [
+                            AgilePriceCard(time: '...', price: 0),
+                            AgilePriceCard(time: '...', price: 0),
+                            AgilePriceCard(time: '...', price: 0),
+                            AgilePriceCard(time: '...', price: 0),
+                          ],
+                        ),
+                      ),
+                    )
+                  : currentAgilePrices.length > 0
+                      ? Center(
+                          child: ResponsiveWidget(
+                            smallScreen: getCustomGridView(currentAgilePrices,
+                                gridSize: 8),
+                            mediumScreen: getCustomGridView(currentAgilePrices,
+                                gridSize: 10),
+                            largeScreen: getCustomGridView(currentAgilePrices,
+                                gridSize: 12),
                           ),
                         )
-                      : currentAgilePrices.length > 0
-                          ? ResponsiveWidget(
-                              smallScreen: getCustomGridView(currentAgilePrices,
-                                  gridSize: 3),
-                              mediumScreen: getCustomGridView(
-                                  currentAgilePrices,
-                                  gridSize: 5),
-                              largeScreen: getCustomGridView(currentAgilePrices,
-                                  gridSize: 10),
-                            )
-                          : Container(
-                              child: Text('Uh oh, could not get Agile prices'),
-                            )),
-            ],
-          ),
-        )
-      ]),
+                      : Container(
+                          child: Text('Uh oh, could not get Agile prices'),
+                        )),
+        ],
+      ),
     );
   }
 

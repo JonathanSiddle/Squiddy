@@ -10,7 +10,7 @@ import 'package:squiddy/octopus/OctopusManager.dart';
 import 'package:squiddy/octopus/dataClasses/ElectricityAccount.dart';
 import 'package:squiddy/octopus/settingsManager.dart';
 import 'package:squiddy/widgets/MonthCards.dart';
-import 'package:squiddy/widgets/agilePriceList.dart';
+import 'package:squiddy/widgets/agilePriceSection.dart';
 import 'package:squiddy/widgets/monthsOverview/OverviewSection.dart';
 
 class MonthsOverview extends StatefulWidget {
@@ -186,13 +186,6 @@ class _MonthsOverviewState extends State<MonthsOverview> {
                           //  * Agile price section
                           //  *******************/
                           // What will become the new agile price section
-                          settings.showAgilePrices
-                              ? AgilePriceSection()
-                              : SliverToBoxAdapter(
-                                  child: Container(
-                                    height: 10,
-                                  ),
-                                ),
                           /*
                           * Main month card section
                           */
