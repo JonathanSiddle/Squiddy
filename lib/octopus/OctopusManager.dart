@@ -8,6 +8,7 @@ import 'package:squiddy/octopus/EnergyConsumptionRepo.dart';
 import 'package:squiddy/octopus/dataClasses/AgilePrice.dart';
 import 'package:squiddy/octopus/dataClasses/ElectricityAccount.dart';
 import 'package:squiddy/octopus/dataClasses/EnergyConsumption.dart';
+import 'package:squiddy/octopus/dataClasses/EnergyDay.dart';
 import 'package:squiddy/octopus/dataClasses/EnergyMonth.dart';
 import 'package:squiddy/octopus/octopusEnergyClient.dart';
 
@@ -32,6 +33,15 @@ class OctopusManager extends ChangeNotifier {
 
   Set<EnergyMonth> get monthsCache {
     return _monthsCache.toList().reversed.toSet();
+  }
+
+  ///this message will get the last day of readings
+  ///if the app has not readings an empty list will be returned
+  EnergyDay get lastDayReading {
+    if (_monthsCache.isNotEmpty) {
+      return _monthsCache?.last?.days?.first;
+    }
+    return null;
   }
 
   OctopusManager(

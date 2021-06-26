@@ -15,51 +15,68 @@ class OverviewSection extends StatelessWidget {
     final settings = Provider.of<SettingsManager>(context);
     final loading = Provider.of<OctopusManager>(context).loadingData;
 
-    var screenWidth = MediaQuery.of(context).size.width / 2;
+    var screenWidth = MediaQuery.of(context).size.width;
 
-    return Column(
-      children: <Widget>[
-        Padding(
-          padding: const EdgeInsets.fromLTRB(10, 10, 10, 5),
-          child: Row(
-            children: <Widget>[
-              Text(
-                'Squiddy',
-                style: TextStyle(fontSize: 48),
-              ),
-              loading
-                  ? Padding(
-                      padding: const EdgeInsets.only(left: 10.0),
-                      child: CircularProgressIndicator(),
-                    )
-                  : Container(),
-              Expanded(child: Container()),
-              IconButton(
-                  icon: Icon(
-                    FontAwesomeIcons.cog,
-                    size: 36,
-                  ),
-                  onPressed: () {
-                    Navigator.push(context,
-                        SlideTopRoute(page: SettingsPage(), name: 'settings'));
-                  }),
-              //Agile price and yesterday information section
-            ],
+    return Container(
+      height: 400,
+      child: Column(
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.fromLTRB(10, 10, 10, 5),
+            child: Row(
+              children: <Widget>[
+                Text(
+                  'Squiddy',
+                  style: TextStyle(fontSize: 48),
+                ),
+                loading
+                    ? Padding(
+                        padding: const EdgeInsets.only(left: 10.0),
+                        child: CircularProgressIndicator(),
+                      )
+                    : Container(),
+                Expanded(child: Container()),
+                IconButton(
+                    icon: Icon(
+                      FontAwesomeIcons.cog,
+                      size: 36,
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          SlideTopRoute(
+                              page: SettingsPage(), name: 'settings'));
+                    }),
+                //Agile price and yesterday information section
+              ],
+            ),
           ),
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            settings.showAgilePrices
-                //todo fix this display for non-agile customers
-                ? Container(width: screenWidth, child: AgilePriceSection())
-                : Container(
-                    height: 10,
-                  ),
-            Container(width: screenWidth, child: YesterdaySummarySection())
-          ],
-        )
-      ],
+          Container(
+            width: screenWidth,
+            height: 300,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              // children: [AgilePriceSection(), YesterdaySummarySection()],
+              children: [AgilePriceSection()],
+            ),
+          )
+          // Container(
+          //   width: screenWidth,
+          //   child: Row(
+          //     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          //     children: [
+          //       settings.showAgilePrices
+          //           //todo fix this display for non-agile customers
+          //           ? AgilePriceSection()
+          //           : Container(
+          //               height: 10,
+          //             ),
+          //       YesterdaySummarySection()
+          //     ],
+          //   ),
+          // )
+        ],
+      ),
     );
   }
 }

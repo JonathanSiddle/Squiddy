@@ -30,7 +30,6 @@ class _AgilePriceSectionState extends State<AgilePriceSection> {
 
     return Container(
       height: 300,
-      // width: 1200,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -74,15 +73,13 @@ class _AgilePriceSectionState extends State<AgilePriceSection> {
                       ),
                     )
                   : currentAgilePrices.length > 0
-                      ? Center(
-                          child: ResponsiveWidget(
-                            smallScreen: getCustomGridView(currentAgilePrices,
-                                gridSize: 8),
-                            mediumScreen: getCustomGridView(currentAgilePrices,
-                                gridSize: 10),
-                            largeScreen: getCustomGridView(currentAgilePrices,
-                                gridSize: 12),
-                          ),
+                      ? ResponsiveWidget(
+                          smallScreen: getCustomGridView(currentAgilePrices,
+                              gridSize: 3),
+                          mediumScreen: getCustomGridView(currentAgilePrices,
+                              gridSize: 5),
+                          largeScreen: getCustomGridView(currentAgilePrices,
+                              gridSize: 7),
                         )
                       : Container(
                           child: Text('Uh oh, could not get Agile prices'),
@@ -130,42 +127,39 @@ class _AgilePriceSectionState extends State<AgilePriceSection> {
       cGridCount += 1;
     }
 
-    return Container(
-      height: 250,
-      child: ListView.builder(
-        itemCount: agilePriceRows.length,
-        itemBuilder: (context, index) {
-          var row = agilePriceRows[index];
+    // return ListView.builder(
+    //   shrinkWrap: true,
+    //   itemCount: agilePriceRows.length,
+    //   itemBuilder: (context, index) {
+    //     var row = agilePriceRows[index];
 
-          return Row(
-            children: [
-              ...row
-                  .map((ap) => AgilePriceCard(
-                        time: timeFormat.format(ap.validFrom),
-                        price: ap.valueIncVat,
-                      ))
-                  .toList()
-            ],
-          );
-        },
-      ),
-    );
-
-    // return Column(
-    //   children: [
-    //     ...agilePriceRows.map((p) {
-    //       return Row(
-    //         children: [
-    //           ...p
-    //               .map((e) => AgilePriceCard(
-    //                     time: timeFormat.format(e.validFrom),
-    //                     price: e.valueIncVat,
-    //                   ))
-    //               .toList()
-    //         ],
-    //       );
-    //     }).toList()
-    //   ],
+    //     return Row(
+    //       children: [
+    //         ...row
+    //             .map((ap) => AgilePriceCard(
+    //                   time: timeFormat.format(ap.validFrom),
+    //                   price: ap.valueIncVat,
+    //                 ))
+    //             .toList()
+    //       ],
+    //     );
+    //   },
     // );
+    return Column(
+      children: [
+        ...agilePriceRows
+            .map((r) => Row(
+                  children: [
+                    ...r
+                        .map((ap) => AgilePriceCard(
+                              time: timeFormat.format(ap.validFrom),
+                              price: ap.valueIncVat,
+                            ))
+                        .toList()
+                  ],
+                ))
+            .toList()
+      ],
+    );
   }
 }
