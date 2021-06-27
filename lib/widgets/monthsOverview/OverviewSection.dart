@@ -7,7 +7,6 @@ import 'package:squiddy/octopus/OctopusManager.dart';
 import 'package:squiddy/octopus/settingsManager.dart';
 import 'package:squiddy/routes/settingPage.dart';
 import 'package:squiddy/widgets/agilePriceSection.dart';
-import 'package:squiddy/widgets/yesterdaySummarySection.dart';
 
 class OverviewSection extends StatelessWidget {
   @override
@@ -18,7 +17,7 @@ class OverviewSection extends StatelessWidget {
     var screenWidth = MediaQuery.of(context).size.width;
 
     return Container(
-      height: 400,
+      height: 450,
       child: Column(
         children: <Widget>[
           Padding(
@@ -53,11 +52,11 @@ class OverviewSection extends StatelessWidget {
           ),
           Container(
             width: screenWidth,
-            height: 300,
+            height: 350,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               // children: [AgilePriceSection(), YesterdaySummarySection()],
-              children: [AgilePriceSection()],
+              children: [Container(child: AgilePriceSection())],
             ),
           )
           // Container(

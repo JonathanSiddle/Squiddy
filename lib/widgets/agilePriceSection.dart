@@ -29,9 +29,8 @@ class _AgilePriceSectionState extends State<AgilePriceSection> {
     var currentAgilePrices = octopusManager.currentAgilePrices;
 
     return Container(
-      height: 300,
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        // mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(10.0, 0, 10, 0),
@@ -64,10 +63,11 @@ class _AgilePriceSectionState extends State<AgilePriceSection> {
                         height: 100,
                         child: Row(
                           children: [
-                            AgilePriceCard(time: '...', price: 0),
-                            AgilePriceCard(time: '...', price: 0),
-                            AgilePriceCard(time: '...', price: 0),
-                            AgilePriceCard(time: '...', price: 0),
+                            Text('Loading prices...')
+                            // AgilePriceCard(time: '...', price: 0),
+                            // AgilePriceCard(time: '...', price: 0),
+                            // AgilePriceCard(time: '...', price: 0),
+                            // AgilePriceCard(time: '...', price: 0),
                           ],
                         ),
                       ),
@@ -89,27 +89,6 @@ class _AgilePriceSectionState extends State<AgilePriceSection> {
     );
   }
 
-  Widget getLargeScreenView(List<AgilePrice> agilePrices, {int gridSize = 2}) {
-    // return SliverGrid(
-    //   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-    //       crossAxisCount: 2, childAspectRatio: 4 / 3),
-    //   delegate: SliverChildBuilderDelegate((context, index) {
-    //     var ap = agilePrices[index];
-    //     return AgilePriceCard(
-    //         time: timeFormat.format(ap.validFrom), price: ap.valueIncVat);
-    //   }),
-    // );
-    return GridView.count(
-      shrinkWrap: true,
-      crossAxisCount: 2,
-      children: List.generate(agilePrices.length, (index) {
-        var ap = agilePrices[index];
-        return AgilePriceCard(
-            time: timeFormat.format(ap.validFrom), price: ap.valueIncVat);
-      }),
-    );
-  }
-
   Widget getCustomGridView(List<AgilePrice> agilePrices, {int gridSize}) {
     List<List<AgilePrice>> agilePriceRows = [];
 
@@ -127,39 +106,47 @@ class _AgilePriceSectionState extends State<AgilePriceSection> {
       cGridCount += 1;
     }
 
-    // return ListView.builder(
-    //   shrinkWrap: true,
-    //   itemCount: agilePriceRows.length,
-    //   itemBuilder: (context, index) {
-    //     var row = agilePriceRows[index];
-
-    //     return Row(
+    return Container(
+      height: 300,
+      width: 600,
+      child: ListView.builder(
+        shrinkWrap: true,
+        // physics: NeverScrollableScrollPhysics(),
+        itemCount: agilePriceRows.length,
+        itemBuilder: (context, index) {
+          var row = agilePriceRows[index];
+          return Row(
+            children: [
+              ...row
+                  .map((ap) => AgilePriceCard(
+                        time: timeFormat.format(ap.validFrom),
+                        price: ap.valueIncVat,
+                      ))
+                  .toList()
+            ],
+          );
+        },
+      ),
+    );
+    // return Expanded(
+    //   child: SingleChildScrollView(
+    //     child: Column(
     //       children: [
-    //         ...row
-    //             .map((ap) => AgilePriceCard(
-    //                   time: timeFormat.format(ap.validFrom),
-    //                   price: ap.valueIncVat,
+    //         ...agilePriceRows
+    //             .map((r) => Row(
+    //                   children: [
+    //                     ...r
+    //                         .map((ap) => AgilePriceCard(
+    //                               time: timeFormat.format(ap.validFrom),
+    //                               price: ap.valueIncVat,
+    //                             ))
+    //                         .toList()
+    //                   ],
     //                 ))
     //             .toList()
     //       ],
-    //     );
-    //   },
+    //     ),
+    //   ),
     // );
-    return Column(
-      children: [
-        ...agilePriceRows
-            .map((r) => Row(
-                  children: [
-                    ...r
-                        .map((ap) => AgilePriceCard(
-                              time: timeFormat.format(ap.validFrom),
-                              price: ap.valueIncVat,
-                            ))
-                        .toList()
-                  ],
-                ))
-            .toList()
-      ],
-    );
   }
 }
