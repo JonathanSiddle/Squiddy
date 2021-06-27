@@ -7,6 +7,7 @@ import 'package:squiddy/octopus/OctopusManager.dart';
 import 'package:squiddy/octopus/settingsManager.dart';
 import 'package:squiddy/routes/settingPage.dart';
 import 'package:squiddy/widgets/agilePriceSection.dart';
+import 'package:squiddy/widgets/yesterdaySummarySection.dart';
 
 class OverviewSection extends StatelessWidget {
   @override
@@ -56,7 +57,10 @@ class OverviewSection extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               // children: [AgilePriceSection(), YesterdaySummarySection()],
-              children: [Container(child: AgilePriceSection())],
+              children: [
+                Container(child: AgilePriceSection()),
+                YesterdaySummarySection()
+              ],
             ),
           )
           // Container(

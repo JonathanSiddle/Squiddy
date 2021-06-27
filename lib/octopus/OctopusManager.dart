@@ -39,7 +39,7 @@ class OctopusManager extends ChangeNotifier {
   ///if the app has not readings an empty list will be returned
   EnergyDay get lastDayReading {
     if (_monthsCache.isNotEmpty) {
-      return _monthsCache?.last?.days?.first;
+      return _monthsCache?.last?.days[1];
     }
     return null;
   }

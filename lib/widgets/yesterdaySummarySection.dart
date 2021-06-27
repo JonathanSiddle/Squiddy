@@ -18,7 +18,8 @@ class YesterdaySummarySection extends StatelessWidget {
             child: Text('Getting Data'),
           )
         : Container(
-            height: 250,
+            height: 300,
+            width: 600,
             child: Column(
               children: [
                 Text('${headingDateFormat.format(lastDay.date)}'),
@@ -26,7 +27,7 @@ class YesterdaySummarySection extends StatelessWidget {
                   padding: const EdgeInsets.all(10.0),
                   child: OctoLineChart(
                     data: lastDay.getConsumptionByHour(),
-                    aspectRatio: 16 / 9,
+                    aspectRatio: 20 / 9,
                     interactive: true,
                     showLeftAxis: true,
                     showBottomAxis: true,
