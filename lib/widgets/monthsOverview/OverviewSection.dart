@@ -4,21 +4,21 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:squiddy/Util/SlideRoute.dart';
 import 'package:squiddy/octopus/OctopusManager.dart';
-import 'package:squiddy/octopus/settingsManager.dart';
 import 'package:squiddy/routes/settingPage.dart';
 import 'package:squiddy/widgets/agilePriceSection.dart';
+import 'package:squiddy/widgets/responsiveWidget.dart';
 import 'package:squiddy/widgets/yesterdaySummarySection.dart';
 
 class OverviewSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final settings = Provider.of<SettingsManager>(context);
     final loading = Provider.of<OctopusManager>(context).loadingData;
 
     var screenWidth = MediaQuery.of(context).size.width;
 
     return Container(
-      height: 450,
+      // height: screenWidth < 600 ? 1000 : 450,
+      // height: 600,
       child: Column(
         children: <Widget>[
           Padding(
@@ -51,33 +51,53 @@ class OverviewSection extends StatelessWidget {
               ],
             ),
           ),
-          Container(
-            width: screenWidth,
-            height: 350,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              // children: [AgilePriceSection(), YesterdaySummarySection()],
-              children: [
-                Container(child: AgilePriceSection()),
-                YesterdaySummarySection()
-              ],
-            ),
+          ResponsiveWidget(
+            smallScreen: columnView(),
+            mediumScreen: columnView(),
+            largeScreen: sideBySideViewScreen(gridSize: 6, graphWidth: 500),
+            exLargeScreen: sideBySideViewScreen(gridSize: 8, graphWidth: 650),
           )
-          // Container(
-          //   width: screenWidth,
-          //   child: Row(
-          //     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          //     children: [
-          //       settings.showAgilePrices
-          //           //todo fix this display for non-agile customers
-          //           ? AgilePriceSection()
-          //           : Container(
-          //               height: 10,
-          //             ),
-          //       YesterdaySummarySection()
-          //     ],
-          //   ),
-          // )
+        ],
+      ),
+    );
+  }
+
+  Widget columnView({double screenWidth = 350, double height = 650}) {
+    return Container(
+      // width: screenWidth,
+      // height: height,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: AgilePriceSection(
+              compactView: true,
+            ),
+          ),
+          YesterdaySummarySection(graphWidth: 350),
+        ],
+      ),
+    );
+  }
+
+  Widget sideBySideViewScreen(
+      {int gridSize = 8,
+      double graphWidth = 650,
+      double screenWidth,
+      double height = 350}) {
+    return Container(
+      width: screenWidth,
+      height: height,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        // children: [AgilePriceSection(), YesterdaySummarySection()],
+        children: [
+          Container(
+              child: AgilePriceSection(
+            gridSize: gridSize,
+          )),
+          YesterdaySummarySection(graphWidth: graphWidth),
         ],
       ),
     );

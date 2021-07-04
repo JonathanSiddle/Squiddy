@@ -6,9 +6,13 @@ import 'package:shimmer/shimmer.dart';
 import 'package:squiddy/octopus/OctopusManager.dart';
 import 'package:squiddy/octopus/dataClasses/AgilePrice.dart';
 import 'package:squiddy/widgets/agilePriceCard.dart';
-import 'package:squiddy/widgets/responsiveWidget.dart';
 
 class AgilePriceSection extends StatefulWidget {
+  final int gridSize;
+  final bool compactView;
+
+  AgilePriceSection({this.gridSize = 8, this.compactView = false});
+
   @override
   _AgilePriceSectionState createState() => _AgilePriceSectionState();
 }
@@ -53,7 +57,7 @@ class _AgilePriceSectionState extends State<AgilePriceSection> {
             ),
           ),
           Padding(
-              padding: const EdgeInsets.fromLTRB(10, 5, 10, 10),
+              padding: const EdgeInsets.fromLTRB(0, 5, 10, 10),
               child: currentAgilePrices.length < 1
                   //todo update loading style to new format
                   ? Shimmer.fromColors(
@@ -73,14 +77,10 @@ class _AgilePriceSectionState extends State<AgilePriceSection> {
                       ),
                     )
                   : currentAgilePrices.length > 0
-                      ? ResponsiveWidget(
-                          smallScreen: getCustomGridView(currentAgilePrices,
-                              gridSize: 3),
-                          mediumScreen: getCustomGridView(currentAgilePrices,
-                              gridSize: 5),
-                          largeScreen: getCustomGridView(currentAgilePrices,
-                              gridSize: 7),
-                        )
+                      ? this.widget.compactView
+                          ? getCompactview(currentAgilePrices)
+                          : getCustomGridView(currentAgilePrices,
+                              gridSize: this.widget.gridSize)
                       : Container(
                           child: Text('Uh oh, could not get Agile prices'),
                         )),
@@ -89,7 +89,23 @@ class _AgilePriceSectionState extends State<AgilePriceSection> {
     );
   }
 
-  Widget getCustomGridView(List<AgilePrice> agilePrices, {int gridSize}) {
+  Widget getCompactview(List<AgilePrice> currentAgilePrices) {
+    return Container(
+      height: 100,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: currentAgilePrices.length,
+        itemBuilder: (context, index) {
+          var ap = currentAgilePrices[index];
+          return AgilePriceCard(
+              time: timeFormat.format(ap.validFrom), price: ap.valueIncVat);
+        },
+      ),
+    );
+  }
+
+  Widget getCustomGridView(List<AgilePrice> agilePrices,
+      {int gridSize, double width = 650}) {
     List<List<AgilePrice>> agilePriceRows = [];
 
     var cGridCount = 0;
@@ -108,7 +124,7 @@ class _AgilePriceSectionState extends State<AgilePriceSection> {
 
     return Container(
       height: 300,
-      width: 600,
+      width: width,
       child: ListView.builder(
         shrinkWrap: true,
         // physics: NeverScrollableScrollPhysics(),
@@ -128,25 +144,5 @@ class _AgilePriceSectionState extends State<AgilePriceSection> {
         },
       ),
     );
-    // return Expanded(
-    //   child: SingleChildScrollView(
-    //     child: Column(
-    //       children: [
-    //         ...agilePriceRows
-    //             .map((r) => Row(
-    //                   children: [
-    //                     ...r
-    //                         .map((ap) => AgilePriceCard(
-    //                               time: timeFormat.format(ap.validFrom),
-    //                               price: ap.valueIncVat,
-    //                             ))
-    //                         .toList()
-    //                   ],
-    //                 ))
-    //             .toList()
-    //       ],
-    //     ),
-    //   ),
-    // );
   }
 }

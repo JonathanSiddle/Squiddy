@@ -4,13 +4,11 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
-import 'package:squiddy/Charts/overviewSummary.dart';
 import 'package:squiddy/Theme/SquiddyTheme.dart';
 import 'package:squiddy/octopus/OctopusManager.dart';
 import 'package:squiddy/octopus/dataClasses/ElectricityAccount.dart';
 import 'package:squiddy/octopus/settingsManager.dart';
 import 'package:squiddy/widgets/MonthCards.dart';
-import 'package:squiddy/widgets/agilePriceSection.dart';
 import 'package:squiddy/widgets/monthsOverview/OverviewSection.dart';
 
 class MonthsOverview extends StatefulWidget {
@@ -182,10 +180,6 @@ class _MonthsOverviewState extends State<MonthsOverview> {
                               OverviewSection(),
                             ]),
                           ),
-                          // /********************
-                          //  * Agile price section
-                          //  *******************/
-                          // What will become the new agile price section
                           /*
                           * Main month card section
                           */

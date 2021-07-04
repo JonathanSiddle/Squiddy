@@ -57,6 +57,63 @@ class ResponsiveWidget extends StatelessWidget {
   }
 }
 
+class ResponsiveWidgetHalfSize extends StatelessWidget {
+  final Widget exLargeScreen;
+  final Widget largeScreen;
+  final Widget mediumScreen;
+  final Widget smallScreen;
+
+  const ResponsiveWidgetHalfSize(
+      {Key key,
+      this.exLargeScreen,
+      this.largeScreen,
+      this.mediumScreen,
+      this.smallScreen})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    //Returns the widget which is more appropriate for the screen size
+    return LayoutBuilder(builder: (context, constraints) {
+      print(MediaQuery.of(context).size.width);
+      if (constraints.maxWidth > 700) {
+        return exLargeScreen ?? largeScreen;
+      } else if (constraints.maxWidth > 600) {
+        return largeScreen;
+      } else if (constraints.maxWidth > 400 && constraints.maxWidth < 600) {
+        //if medium screen not available, then return large screen
+        return mediumScreen ?? largeScreen;
+      } else {
+        //if small screen implementation not available, then return large screen
+        return smallScreen ?? largeScreen;
+      }
+    });
+  }
+
+  //Making these methods static, so that they can be used as accessed from other widgets
+
+  //Large screen is any screen whose width is more than 1200 pixels
+  static bool isExLargeScreen(BuildContext context) {
+    return MediaQuery.of(context).size.width > 700;
+  }
+
+  static bool isLargeScreen(BuildContext context) {
+    return MediaQuery.of(context).size.width > 600;
+  }
+
+  //Small screen is any screen whose width is less than 800 pixels
+  static bool isSmallScreen(BuildContext context) {
+    return MediaQuery.of(context).size.width < 400;
+  }
+
+  //Medium screen is any screen whose width is less than 1200 pixels,
+  //and more than 800 pixels
+  static bool isMediumScreen(BuildContext context) {
+    return MediaQuery.of(context).size.width > 400 &&
+        MediaQuery.of(context).size.width < 600;
+  }
+}
+
 class ResponsiveSliverWidget extends StatelessWidget {
   final Widget exLargeScreen;
   final Widget largeScreen;

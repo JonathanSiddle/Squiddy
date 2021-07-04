@@ -4,42 +4,56 @@ import 'package:provider/provider.dart';
 import 'package:squiddy/Charts/octoLineChart.dart';
 import 'package:squiddy/Theme/SquiddyTheme.dart';
 import 'package:squiddy/octopus/OctopusManager.dart';
+import 'package:squiddy/octopus/dataClasses/EnergyDay.dart';
 
 class YesterdaySummarySection extends StatelessWidget {
-  const YesterdaySummarySection({Key key}) : super(key: key);
+  final double graphWidth;
+
+  const YesterdaySummarySection({Key key, this.graphWidth = 650})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final headingDateFormat = DateFormat('MMM-dd');
     var lastDay = Provider.of<OctopusManager>(context).lastDayReading;
 
     return lastDay == null
         ? Center(
             child: Text('Getting Data'),
           )
-        : Container(
-            height: 300,
-            width: 600,
-            child: Column(
-              children: [
-                Text('${headingDateFormat.format(lastDay.date)}'),
-                Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: OctoLineChart(
-                    data: lastDay.getConsumptionByHour(),
-                    aspectRatio: 20 / 9,
-                    interactive: true,
-                    showLeftAxis: true,
-                    showBottomAxis: true,
-                    isCurved: true,
-                    gradientColours: [
-                      SquiddyTheme.squiddyPrimary,
-                      SquiddyTheme.squiddyPrimary
-                    ],
-                  ),
-                )
+        : getWidget(lastDay, width: graphWidth);
+  }
+
+  Widget getWidget(EnergyDay lastDay,
+      {double width = 650, double ratio = 20 / 9}) {
+    final headingDateFormat = DateFormat('MMM-dd');
+    return Container(
+      width: width,
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Text(
+              '${headingDateFormat.format(lastDay.date)}',
+              style: TextStyle(fontSize: 24),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: OctoLineChart(
+              data: lastDay.getConsumptionByHour(),
+              aspectRatio: 20 / 9,
+              interactive: true,
+              showLeftAxis: true,
+              showBottomAxis: true,
+              isCurved: true,
+              gradientColours: [
+                SquiddyTheme.squiddyPrimary,
+                SquiddyTheme.squiddyPrimary
               ],
             ),
-          );
+          )
+        ],
+      ),
+    );
   }
 }
